@@ -8,15 +8,37 @@ initial_setup() {
     mkdir -p ~/lib
 }
 
-if [[ $1 = "-nodes" ]]
-then
-  echo $2
+setup_nodes(){
+  for node in "${nodes[@]}"
+  do
+    ssh-copy-id -i ~/.ssh/id_rsa.pub "$node"
+    echo "$node"
+  done
 
-  # preserve -# $2 -t 00:15:00
-  # preserve -llist | grep $USER |
+}
+
+if [[ $1 = "--nodes" ]]
+then
+  echo "Setting up a node cluster of size $2"
+  preserve -# $2 -t 00:01:00
+  sleep 1
+  declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
+  echo "${nodes[@]}"
+  printf "\n"
+
+  echo "Configuring nodes. Please enter your password."
+  ssh-keygen -t rsa -P "" -f ~/.ssh/id_rsa
+  setup_nodes
+  
   exit 0
 fi
 
+if [[ $1 = "--local" ]]
+then
+  echo "Setting up a node cluster of size 1"
+
+  exit 0
+fi
 # start script
 # initial_setup
 #start_master () {
