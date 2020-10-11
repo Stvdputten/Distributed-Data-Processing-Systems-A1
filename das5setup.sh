@@ -2,21 +2,50 @@
 
 root_dir=$(pwd)
 
-if [ -z "$SPARK_HOME" ]
-then 
-  SPARK_HOME=~/lib/spark
-fi
+# Setups SPARK_HOME and HADOOP_HOME
+check_requirements(){
+  if [ -z "$SPARK_HOME" ]
+  then 
+    export SPARK_HOME=~/lib/spark
+    echo 'No SPARK_HOME set'
+    echo 'Set Spark env variable'
+  fi
+  
+  if [ -z "$HADOOP_HOME" ]
+  then 
+    export HADOOP_HOME=~/lib/hadoop
+    echo 'No HADOOP_HOME set'
+    echo 'Set Hadoop env variable'
+  fi
+}
 
-if [ -z "$HADOOP_HOME" ]
-then 
-  HADOOP_HOME=~/lib/hadoop
-fi
+source ~/.bashrc
 
 initial_setup() {
-    echo "Starting setup"
-    # echo "$root_dir"
-    mkdir -p ~/lib
+  echo "Starting setup"
+  echo "Downloading Hadoop & Spark"
+  wget https://apache.mirror.wearetriple.com/spark/spark-3.0.1/spark-3.0.1-bin-hadoop3.2.tgz
+  wget https://apache.mirror.wearetriple.com/hadoop/common/hadoop-3.3.0/hadoop-3.3.0.tar.gz
+
+  # create lib where hadoop and spark will be stored
+  mkdir -p ~/lib/hadoop ~/lib/spark
+
+  echo "Extracting files to lib"
+  # extract to correct folders
+  tar zxf hadoop-3.3.0.tar.gz -C ~/lib/spark --strip-components=1
+  tar zxf spark-3.0.1-bin-hadoop3.2.tgz -C ~/lib/spark --strip-components=1
+
+  echo "Cleaning up"
+  # rm tgz
+  rm hadoop-3.3.0.tar.gz spark-3.0.1-bin-hadoop3.2.tgz
+  echo "Setup done"
 }
+
+if [[ $1 = "--setup" ]]
+then
+  initial_setup
+  exit 0
+fi
 
 # ssh keys to all nodes
 setup_nodes(){
@@ -43,6 +72,7 @@ then
   setup_nodes
   for node in "${nodes[@]}"
   do
+    # Goal is to connect workers to a master node TODO
     ssh node 'cd $SPARK_HOME && sbin/start-slave.sh spark://fs1.cm.cluster:7082'
     echo "$node"
   done
@@ -50,15 +80,15 @@ then
   exit 0
 fi
 
-# Mostly for local debugging
+# Mostly for local debugging assuming HDFS is correctly setup and SPARK knows how to connect to HDFS
+# TODO Needs to be expanded to only choose 1 worker node, which is most likely localhost
 if [[ $1 = "--local" ]]
 then
+  check_requirements
   echo "Setting up a node cluster of size 1"
   echo "Setting up Hadoop & Spark"
-  #initial_setup
-  $SPARK_HOME/sbin/start-all.sh 
-  $HADOOP_HOME/sbin/start-all.sh 
 
+  start_all
   exit 0
 fi
 
@@ -79,11 +109,23 @@ start_all () {
     $HADOOP_HOME/sbin/start_all.sh
 }
 
+# Start up SPARK and HADOOP daemons/processes
 if [[ $1 = "--start-all" ]]
 then
-  echo "Stopping all"
+  echo "Starting all"
   start_all
   exit 0
+fi
+
+if [[ $1 = "--help" || $1 = "-h" ]]
+then
+    echo "Usage: $0 [option]"
+    echo "setup                     Setup all initial software and packages."
+    echo "start-all                 Start all current nodes."
+    echo "local                     Start all current nodes."
+    echo "stop-all                  Stop all current nodes."
+    echo "nodes                     Followg by number of nodes to setup in das5"
+    exit 0
 fi
 
 # start script
