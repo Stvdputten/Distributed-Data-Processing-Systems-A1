@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Written by Stephan van der Putten s1528459
 
 root_dir=$(pwd)
 
@@ -20,16 +21,48 @@ setup_nodes(){
 if [[ $1 = "--nodes" ]]
 then
   echo "Setting up a node cluster of size $2"
-  preserve -# $2 -t 00:01:00
+  declare -a nodes=()
+  preserve -# $2 -t 00:$3:00
+  # during testing
+  #preserve -# $2 -t 00:00:30
   sleep 1
   declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
-  echo "${nodes[@]}"
+
+  echo "We have reserverd node(s): ${nodes[@]}"
+
+  printf "\n"
+  echo > $SPARK_HOME/conf/spark-env.sh
+  printf "The master is node: ${nodes[0]}"
+  echo "SPARK_MASTER_HOST=\"${nodes[0]}\"" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "SPARK_MASTER_PORT=1337" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "SPARK_MASTER_WEBUI_PORT=6789" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "$node" >> $SPARK_HOME/conf/spark-env.sh
+
   printf "\n"
 
-  echo "Configuring nodes. Please enter your password."
-  ssh-keygen -t rsa -P "" -f ~/.ssh/id_rsa
-  setup_nodes
+
+  echo > $SPARK_HOME/conf/slaves
+  for node in "${nodes[@]:1}"
+  do 
+    echo "$node" >> $SPARK_HOME/conf/slaves
+    #echo "node: " $node 
+    #printf "\n"
+  done 
+
+
+  # start the remote master
+  ssh ${nodes[0]} '$SPARK_HOME/sbin/start-master.sh'
+  $SPARK_HOME/sbin/start-all.sh
+
+  echo "We are done"
   
+  exit 0
+fi
+
+if [[ $1 = "--local" ]]
+then
+  echo "Setting up a node cluster of size 1"
+
   exit 0
 fi
 
@@ -58,6 +91,14 @@ fi
 #    ~/.local/bin/spark/sbin/start-slaves.sh
 #}
 #
-#stop_all () {
-#    ~/.local/bin/spark/sbin/stop-all.sh
-#}
+stop_all () {
+  ssh ${nodes[0]} "$SPARK_HOME/sbin/stop-all.sh"
+  # ~/.local/bin/spark/sbin/stop-all.sh
+}
+
+if [[ $1 = "--stop_all" ]]
+then
+    stop_all
+    wait
+    exit 0
+fi
