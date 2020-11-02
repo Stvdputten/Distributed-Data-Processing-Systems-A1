@@ -22,6 +22,17 @@ ssh <DAS5_ACCOUNT>@fs1.das5.liacs.nl
 
 This repository has been tested for local usage on Debian 10 and is run on the linux system of das5.
 
+##  Set Environment 
+Make sure to `export` the variables or save it in your .bashrc 
+
+Environment Variable        |      Meaning
+----------------|--------------------------------------------------------
+$SPARK_HOME    |      The Spark installation location
+$HADOOP_HOME  |   The Hadoop installation location. 
+$JAVA_HOME | The Java installation location. Usually somewhere on /usr/lib/jvm/
+
+
+
 ## Setup 
 
 **1. Clone the repo**
@@ -32,10 +43,18 @@ git clone https://github.com/Stvdputten/Distributed-Data-Processing-Systems-A1.g
 **2. Deploy setup**
 ```
 cd Distributed-Data-Processing-Systems-A1
-./das5setup --setup
+./das5setup --setup 
+```
+
+**3. Startup multi cluster **
+```
+# First variable is the node count and second variable is the reserved amount of times
+./das5setup --nodes 5
 ```
 
 ## Usage example
+
+
 
 ## Acknowledgements
 
