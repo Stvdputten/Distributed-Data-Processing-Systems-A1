@@ -24,6 +24,7 @@ source ~/.bashrc
 
 initial_setup() {
   echo "Starting setup"
+  # TODO UPDATE to correct versions
   echo "Downloading Hadoop & Spark"
   wget https://apache.mirror.wearetriple.com/spark/spark-3.0.1/spark-3.0.1-bin-hadoop3.2.tgz
   wget https://apache.mirror.wearetriple.com/hadoop/common/hadoop-3.3.0/hadoop-3.3.0.tar.gz
@@ -48,17 +49,7 @@ then
   exit 0
 fi
 
-# ssh keys to all nodes
-setup_nodes(){
-  for node in "${nodes[@]}"
-  do
-    ssh-copy-id -i ~/.ssh/id_rsa.pub "$node"
-    echo "$node"
-  done
-
-}
-
-# used on the das5
+# Setups the amount of nodes and takes flag amount of minutes
 if [[ $1 = "--nodes" ]]
 then
   echo "Setting up a node cluster of size $2"
@@ -70,6 +61,8 @@ then
   declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
 
   echo "We have reserverd node(s): ${nodes[@]}"
+
+  # TODO Hadoop setup
 
   printf "\n"
   echo > $SPARK_HOME/conf/spark-env.sh
@@ -85,6 +78,7 @@ then
   for node in "${nodes[@]:1}"
   do 
     echo "$node" >> $SPARK_HOME/conf/slaves
+    ssh $node 'mkdir -p /local/ddps2006/'
     #echo "node: " $node 
     #printf "\n"
   done 
