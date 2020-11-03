@@ -49,6 +49,34 @@ then
   exit 0
 fi
 
+initial_setup_spark() {
+  printf "\n"
+  declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
+  echo > $SPARK_HOME/conf/spark-env.sh
+  printf "The master is node: ${nodes[0]}"
+  echo "SPARK_MASTER_HOST=\"${nodes[0]}\"" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "SPARK_MASTER_PORT=1337" >> $SPARK_HOME/conf/spark-env.sh 
+  #echo "SPARK_MASTER_WEBUI_PORT=6789" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "$node" >> $SPARK_HOME/conf/spark-env.sh
+
+  printf "\n"
+
+  echo > $SPARK_HOME/conf/slaves
+  for node in "${nodes[@]:1}"
+  do 
+    echo "$node" >> $SPARK_HOME/conf/slaves
+    ssh $node 'mkdir -p /local/ddps2006/'
+    #echo "node: " $node 
+    #printf "\n"
+  done 
+
+  # start the remote master
+  ssh ${nodes[0]} '$SPARK_HOME/sbin/start-all.sh'
+  #ssh ${nodes[0]} '$SPARK_HOME/sbin/start-master.sh'
+  #$SPARK_HOME/sbin/start-all.sh
+
+}
+
 # Setups the amount of nodes and takes flag amount of minutes
 if [[ $1 = "--nodes" ]]
 then
@@ -64,29 +92,8 @@ then
 
   # TODO Hadoop setup
 
-  printf "\n"
-  echo > $SPARK_HOME/conf/spark-env.sh
-  printf "The master is node: ${nodes[0]}"
-  echo "SPARK_MASTER_HOST=\"${nodes[0]}\"" >> $SPARK_HOME/conf/spark-env.sh 
-  echo "SPARK_MASTER_PORT=1337" >> $SPARK_HOME/conf/spark-env.sh 
-  echo "SPARK_MASTER_WEBUI_PORT=6789" >> $SPARK_HOME/conf/spark-env.sh 
-  echo "$node" >> $SPARK_HOME/conf/spark-env.sh
+  initial_setup_spark
 
-  printf "\n"
-
-  echo > $SPARK_HOME/conf/slaves
-  for node in "${nodes[@]:1}"
-  do 
-    echo "$node" >> $SPARK_HOME/conf/slaves
-    ssh $node 'mkdir -p /local/ddps2006/'
-    #echo "node: " $node 
-    #printf "\n"
-  done 
-
-
-  # start the remote master
-  ssh ${nodes[0]} '$SPARK_HOME/sbin/start-master.sh'
-  $SPARK_HOME/sbin/start-all.sh
 
   echo "We are done"
   
@@ -106,7 +113,8 @@ then
 fi
 
 start_all () {
-    $SPARK_HOME/sbin/start_all.sh
+    initial_setup_spark
+    #$SPARK_HOME/sbin/start_all.sh
     #$HADOOP_HOME/sbin/start_all.sh
 }
 
@@ -115,16 +123,18 @@ if [[ $1 = "--start-all" ]]
 then
   echo "Starting all"
   start_all
+  wait
   exit 0
 fi
 
 stop_all () {
-  ssh ${nodes[0]} "$SPARK_HOME/sbin/stop-all.sh"
-  # ~/.local/bin/spark/sbin/stop-all.sh
+  # ssh ${nodes[0]} "$SPARK_HOME/sbin/stop-all.sh"
+  $SPARK_HOME/sbin/stop-all.sh
 }
 
 if [[ $1 = "--stop_all" ]]
 then
+    echo "Stopping all"
     stop_all
     wait
     exit 0
