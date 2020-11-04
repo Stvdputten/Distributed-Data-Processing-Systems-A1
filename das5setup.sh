@@ -80,10 +80,10 @@ initial_setup_spark() {
   echo "SPARK_MASTER_PORT=1337" >> $SPARK_HOME/conf/spark-env.sh 
   echo "SPARK_LOCAL_DIRS=/local/ddps2006/spark" >> $SPARK_HOME/conf/spark-env.sh 
   #echo "SPARK_MASTER_WEBUI_PORT=6789" >> $SPARK_HOME/conf/spark-env.sh 
-  echo "$node" >> $SPARK_HOME/conf/spark-env.sh
+  $echo "$node" >> $SPARK_HOME/conf/spark-env.sh
   ssh ${nodes[0]} 'mkdir -p /local/ddps2006/spark/'
 
-  echo "$node" >> $SPARK_HOME/conf/spark-env.sh
+  #echo "$node" >> $SPARK_HOME/conf/spark-env.sh
 
   printf "\n"
 
