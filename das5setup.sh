@@ -124,7 +124,7 @@ then
   echo "We have reserverd node(s): ${nodes[@]}"
 
   # TODO Hadoop setup
-  #initial_setup_hadoop
+  initial_setup_hadoop
 
   initial_setup_spark
 
@@ -151,6 +151,7 @@ fi
 
 start_all () {
     initial_setup_spark
+    initial_setup_hadoop
     #$SPARK_HOME/sbin/start_all.sh
     #$HADOOP_HOME/sbin/start_all.sh
 }
@@ -165,12 +166,16 @@ then
 fi
 
 stop_all () {
-  # ssh ${nodes[0]} "$SPARK_HOME/sbin/stop-all.sh"
-  #declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
-  #ssh ${nodes[0]} '$SPARK_HOME/sbin/stop-all.sh'
-  $HADOOP_HOME/sbin/stop-dfs.sh
-  $HADOOP_HOME/sbin/stop-yarn.sh
-  $SPARK_HOME/sbin/stop-all.sh
+  # TODO CHECK IF LOCAL OF SSH TO MASTER NODE IS NECESSARY
+  declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
+
+  ssh ${nodes[0]} '$HADOOP_HOME/sbin/stop-dfs.sh'
+  ssh ${nodes[0]} '$HADOOP_HOME/sbin/stop-yarn.sh'
+  ssh ${nodes[0]} '$SPARK_HOME/sbin/stop-all.sh'
+  #$HADOOP_HOME/sbin/stop-yarn.sh
+  #$SPARK_HOME/sbin/stop-all.sh
+  scancel "$(preserve -llist | grep ddps2006 | awk '{print $1}')"
+  
 }
 
 if [[ $1 = "--stop-all" ]]
