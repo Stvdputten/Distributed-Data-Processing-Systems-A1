@@ -3,7 +3,7 @@
 
 root_dir=$(pwd)
 
-# Setups SPARK_HOME and HADOOP_HOME
+# Setups SPARK_HOME and HADOOP_HOME and JAVA_HOME
 check_requirements(){
   if [ -z "$SPARK_HOME" ]
   then 
@@ -30,6 +30,7 @@ check_requirements(){
 }
 
 
+# Setups up the hadoop and spark
 initial_setup() {
   echo "Starting setup"
   # TODO UPDATE to correct versions
@@ -57,8 +58,19 @@ then
   exit 0
 fi
 
-#initial_setup_hadoop() {
-#}
+initial_setup_hadoop() {
+  declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
+  ssh ${nodes[0]} 'mkdir -p /local/ddps2006/hadoop/'
+  echo > $HADOOP_HOME/etc/hadoop/slaves
+  for node in "${nodes[@]:1}"
+  do 
+    ssh $node 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $HADOOP_HOME/etc/hadoop/slaves
+    ssh $node 'mkdir -p /local/ddps2006/hadoop/'
+  done
+
+  ssh ${nodes[0]} '$HADOOP_HOME/sbin/start-dfs.sh'
+  ssh ${nodes[0]} '$HADOOP_HOME/sbin/start-yarn.sh'
+}
 
 initial_setup_spark() {
   declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
@@ -90,9 +102,6 @@ initial_setup_spark() {
 
   # start the remote master
   ssh ${nodes[0]} '$SPARK_HOME/sbin/start-all.sh'
-  printf "\n"
-  printf "The master is node: ${nodes[0]}"
-  printf "\n"
   #ssh ${nodes[0]} '$SPARK_HOME/sbin/start-master.sh'
   #$SPARK_HOME/sbin/start-all.sh
 
@@ -115,8 +124,13 @@ then
   echo "We have reserverd node(s): ${nodes[@]}"
 
   # TODO Hadoop setup
+  #initial_setup_hadoop
 
   initial_setup_spark
+
+  printf "\n"
+  printf "The master is node: ${nodes[0]}"
+  printf "\n"
 
   echo "Cluster is setup for spark and hadoop!"
   
@@ -154,6 +168,8 @@ stop_all () {
   # ssh ${nodes[0]} "$SPARK_HOME/sbin/stop-all.sh"
   #declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
   #ssh ${nodes[0]} '$SPARK_HOME/sbin/stop-all.sh'
+  $HADOOP_HOME/sbin/stop-dfs.sh
+  $HADOOP_HOME/sbin/stop-yarn.sh
   $SPARK_HOME/sbin/stop-all.sh
 }
 
