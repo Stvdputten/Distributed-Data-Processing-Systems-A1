@@ -7,20 +7,28 @@ root_dir=$(pwd)
 check_requirements(){
   if [ -z "$SPARK_HOME" ]
   then 
-    export SPARK_HOME=~/lib/spark
+    #export SPARK_HOME=~/lib/spark
     echo 'No SPARK_HOME set'
     echo 'Set Spark env variable'
   fi
   
   if [ -z "$HADOOP_HOME" ]
   then 
-    export HADOOP_HOME=~/lib/hadoop
+    #export HADOOP_HOME=~/lib/hadoop
     echo 'No HADOOP_HOME set'
     echo 'Set Hadoop env variable'
   fi
+
+  if [ -z "$JAVA_HOME" ]
+  then 
+    #export JAVA_HOME=~/lib/hadoop
+    echo 'No JAVA_HOME set'
+    echo 'Set JAVA_HOME env variable'
+  fi
+
+  source ~/.bashrc
 }
 
-source ~/.bashrc
 
 initial_setup() {
   echo "Starting setup"
@@ -49,14 +57,20 @@ then
   exit 0
 fi
 
+#initial_setup_hadoop() {
+#}
+
 initial_setup_spark() {
-  printf "\n"
   declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
   echo > $SPARK_HOME/conf/spark-env.sh
-  printf "The master is node: ${nodes[0]}"
   echo "SPARK_MASTER_HOST=\"${nodes[0]}\"" >> $SPARK_HOME/conf/spark-env.sh 
+  #ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $SPARK_HOME/conf/slaves
   echo "SPARK_MASTER_PORT=1337" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "SPARK_LOCAL_DIRS=/local/ddps2006/spark" >> $SPARK_HOME/conf/spark-env.sh 
   #echo "SPARK_MASTER_WEBUI_PORT=6789" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "$node" >> $SPARK_HOME/conf/spark-env.sh
+  ssh ${nodes[0]} 'mkdir -p /local/ddps2006/spark/'
+
   echo "$node" >> $SPARK_HOME/conf/spark-env.sh
 
   printf "\n"
@@ -64,14 +78,21 @@ initial_setup_spark() {
   echo > $SPARK_HOME/conf/slaves
   for node in "${nodes[@]:1}"
   do 
-    echo "$node" >> $SPARK_HOME/conf/slaves
-    ssh $node 'mkdir -p /local/ddps2006/'
+    #old band
+    #$echo "$node" >> $SPARK_HOME/conf/slaves
+
+    #highbang connection
+    ssh $node 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $SPARK_HOME/conf/slaves
+    ssh $node 'mkdir -p /local/ddps2006/spark/'
     #echo "node: " $node 
     #printf "\n"
   done 
 
   # start the remote master
   ssh ${nodes[0]} '$SPARK_HOME/sbin/start-all.sh'
+  printf "\n"
+  printf "The master is node: ${nodes[0]}"
+  printf "\n"
   #ssh ${nodes[0]} '$SPARK_HOME/sbin/start-master.sh'
   #$SPARK_HOME/sbin/start-all.sh
 
@@ -88,14 +109,16 @@ then
   sleep 1
   declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
 
+  #if [[ $1 = "-"]]
+  #  
+  #fi
   echo "We have reserverd node(s): ${nodes[@]}"
 
   # TODO Hadoop setup
 
   initial_setup_spark
 
-
-  echo "We are done"
+  echo "Cluster is setup for spark and hadoop!"
   
   exit 0
 fi
@@ -129,10 +152,12 @@ fi
 
 stop_all () {
   # ssh ${nodes[0]} "$SPARK_HOME/sbin/stop-all.sh"
+  #declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
+  #ssh ${nodes[0]} '$SPARK_HOME/sbin/stop-all.sh'
   $SPARK_HOME/sbin/stop-all.sh
 }
 
-if [[ $1 = "--stop_all" ]]
+if [[ $1 = "--stop-all" ]]
 then
     echo "Stopping all"
     stop_all
@@ -140,6 +165,7 @@ then
     exit 0
 fi
 
+# TODO
 if [[ $1 = "--local" ]]
 then
   echo "Setting up a node cluster of size 1"
