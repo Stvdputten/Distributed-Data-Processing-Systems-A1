@@ -30,6 +30,7 @@ check_requirements(){
 }
 
 
+
 # Setups up the hadoop and spark
 initial_setup() {
   echo "Starting setup"
@@ -61,10 +62,20 @@ fi
 initial_setup_hadoop() {
   declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
   ssh ${nodes[0]} 'mkdir -p /local/ddps2006/hadoop/'
+  #cp ~/.bash_profile_cp ~/.bash_profile
+  master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
+  sed -i "s/hdfs:\/\/.*:/hdfs:\/\/${nodes[0]}:/g" $HADOOP_HOME/etc/hadoop/core-site.xml
+  sed -i "22s/<value>.*:/<value>${nodes[0]}:/g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
+  sed -i "26s/<value>.*:/<value>${nodes[0]}/g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
+  ssh ${nodes[0]} 'yes | $HADOOP_HOME/bin/hadoop namenode -format'
+  #echo export HADOOP_NAMENODE=${nodes[0]} >> ~/.bash_profile
+
+  #ssh ${nodes[0]} 'export $'
   echo > $HADOOP_HOME/etc/hadoop/slaves
   for node in "${nodes[@]:1}"
   do 
-    ssh $node 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $HADOOP_HOME/etc/hadoop/slaves
+    #ssh $node 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $HADOOP_HOME/etc/hadoop/slaves
+    echo $node >> $HADOOP_HOME/etc/hadoop/slaves
     ssh $node 'mkdir -p /local/ddps2006/hadoop/'
   done
 
@@ -79,8 +90,11 @@ initial_setup_spark() {
   #ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $SPARK_HOME/conf/slaves
   echo "SPARK_MASTER_PORT=1337" >> $SPARK_HOME/conf/spark-env.sh 
   echo "SPARK_LOCAL_DIRS=/local/ddps2006/spark" >> $SPARK_HOME/conf/spark-env.sh 
-  #echo "SPARK_MASTER_WEBUI_PORT=6789" >> $SPARK_HOME/conf/spark-env.sh 
-  $echo "$node" >> $SPARK_HOME/conf/spark-env.sh
+  echo "SPARK_MASTER_WEBUI_PORT=1336" >> $SPARK_HOME/conf/spark-env.sh 
+  #echo "SPARK_WORKER_INSTANCES="$(expr ${#nodes[@]} - 1)"" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "SPARK_WORKER_MEMORY=15G" >> $SPARK_HOME/conf/spark-env.sh 
+  echo "HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop" >> $SPARK_HOME/conf/spark-env.sh 
+  #$echo "$node" >> $SPARK_HOME/conf/spark-env.sh
   ssh ${nodes[0]} 'mkdir -p /local/ddps2006/spark/'
 
   #echo "$node" >> $SPARK_HOME/conf/spark-env.sh
@@ -118,12 +132,14 @@ then
   sleep 1
   declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
 
-  #if [[ $1 = "-"]]
-  #  
-  #fi
-  echo "We have reserverd node(s): ${nodes[@]}"
 
-  # TODO Hadoop setup
+  if [ ${nodes[0]} = "-" ]
+  then
+    echo "Nodes are waiting to be reserved, try --start-all when ready" 
+  fi
+
+  echo "We have reserved node(s): ${nodes[@]}"
+
   initial_setup_hadoop
 
   initial_setup_spark
@@ -134,6 +150,20 @@ then
 
   echo "Cluster is setup for spark and hadoop!"
   
+  exit 0
+fi
+
+initial_setup_HiBench(){
+  echo "Hello World"
+  #sed -i "s/hdfs:\/\/.*:/hdfs:\/\/${nodes[0]}:/g" $HADOOP_HOME/etc/hadoop/core-site.xml
+
+}
+
+
+if [[ $1 = "--experiments" ]]
+then
+  initial_setup_HiBench
+
   exit 0
 fi
 
@@ -192,8 +222,8 @@ then
   echo "Setting up a node cluster of size 1"
 
   exit 0
-
 fi
+
 if [[ $1 = "--help" || $1 = "-h" ]]
 then
     echo "Usage: $0 [option]"
@@ -203,6 +233,14 @@ then
     echo "stop-all                  Stop all current nodes."
     echo "nodes                     Followg by number of nodes to setup in das5"
     exit 0
+fi
+
+# TODO
+if [[ $1 = "--experiments" ]]
+then
+  echo "Starting Experiments"
+
+  exit 0
 fi
 # start script
 # initial_setup
