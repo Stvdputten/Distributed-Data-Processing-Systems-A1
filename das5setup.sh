@@ -72,6 +72,7 @@ initial_setup() {
   echo "export JAVA_HOME=$(sed 's/\(\/\jre\/bin\/java\)//g' <<<  "$(ls -la $(ls -la $(which java) | awk '{ print $NF}') | awk '{ print $NF }')")" >> ~/.bashrc
   echo "export HIBENCH_HOME=$install_dir/hibench" >> ~/.bashrc
   echo "export PATH=\$PATH:$install_dir/maven/bin" >> ~/.bashrc
+  echo >> ~/.bashrc
   source ~/.bashrc
   check_requirements
 
