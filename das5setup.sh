@@ -3,32 +3,28 @@
 
 root_dir=$(pwd)
 
-# Setups SPARK_HOME and HADOOP_HOME and JAVA_HOME
+# Check requirements SPARK_HOME and HADOOP_HOME and JAVA_HOME and HIBENCH_HOME
 check_requirements(){
   if [ -z "$SPARK_HOME" ]
   then 
-    #export SPARK_HOME=~/lib/spark
     echo 'No SPARK_HOME set'
     echo 'Set Spark env variable'
   fi
   
   if [ -z "$HADOOP_HOME" ]
   then 
-    #export HADOOP_HOME=~/lib/hadoop
     echo 'No HADOOP_HOME set'
     echo 'Set Hadoop env variable'
   fi
 
   if [ -z "$JAVA_HOME" ]
   then 
-    #export JAVA_HOME=~/lib/hadoop
     echo 'No JAVA_HOME set'
     echo 'Set JAVA_HOME env variable'
   fi
 
   if [ -z "$HIBENCH_HOME" ]
   then 
-    #export JAVA_HOME=~/lib/hadoop
     echo 'No HIBENCH_HOME set'
     echo 'Set HIBENCH_HOME env variable'
   fi
@@ -37,7 +33,7 @@ check_requirements(){
 
 
 
-# Setups up the hadoop and spark
+# TODO Setups up the hadoop and spark 
 initial_setup() {
   echo "Starting setup"
   # TODO UPDATE to correct versions
@@ -50,7 +46,7 @@ initial_setup() {
 
   echo "Extracting files to lib"
   # extract to correct folders
-  tar zxf hadoop-3.3.0.tar.gz -C ~/lib/spark --strip-components=1
+  tar zxf hadoop-3.3.0.tar.gz -C ~/lib/hadoop --strip-components=1
   tar zxf spark-3.0.1-bin-hadoop3.2.tgz -C ~/lib/spark --strip-components=1
 
   echo "Cleaning up"
@@ -66,6 +62,7 @@ then
 fi
 
 initial_setup_hadoop() {
+  # get reserved nodes
   declare -a nodes=(`preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'`)
   ssh ${nodes[0]} 'mkdir -p /local/ddps2006/hadoop/'
   #cp ~/.bash_profile_cp ~/.bash_profile
@@ -152,14 +149,14 @@ then
   if [ ${nodes[0]} = "-" ]
   then
     echo "Nodes are waiting to be reserved, try --start-all when ready" 
+  else 
+    echo "We have reserved node(s): ${nodes[@]}" 
+    # Setup hadoop/spark/HiBench
+    initial_setup_hadoop 
+    initial_setup_spark
+    initial_setup_HiBench 
   fi
 
-  echo "We have reserved node(s): ${nodes[@]}"
-
-  initial_setup_hadoop
-
-  initial_setup_spark
-  initial_setup_HiBench
 
   printf "\n"
   printf "The master is node: ${nodes[0]}"
@@ -179,11 +176,14 @@ then
   # NOT RUNNING ALL EXPERIMENTS FOR SCALA/SPARK?
   for i in {1..$2..1}
   do 
+     printf "\n"
+     echo "Running experiment: $i"
+     printf "\n"
+
      ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/micro/wordcount/hadoop/run.sh"
      wait
      ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/micro/wordcount/spark/run.sh"
      wait
-     echo i
   done
   echo "Results are done"
   wait
