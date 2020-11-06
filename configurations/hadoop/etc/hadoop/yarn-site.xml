@@ -19,11 +19,11 @@
     </property>
     <property>
         <name>yarn.resourcemanager.webapp.address</name>
-        <value>node102:6766</value>
+        <value>node122:6766</value>
     </property>
     <property>
 	<name>yarn.resourcemanager.hostname</name>
-	<value>node102</value>
+	<value>node122</value>
     </property>
     <property>
             <name>yarn.acl.enable</name>
@@ -43,9 +43,15 @@
             <value>15000</value>
     </property>
     
+<!--
     <property>
             <name>yarn.scheduler.minimum-allocation-mb</name>
             <value>5000</value>
+    </property>
+-->
+    <property>
+            <name>yarn.nodemanager.resource.cpu-vcores</name>
+            <value>4</value>
     </property>
     
     <property>
