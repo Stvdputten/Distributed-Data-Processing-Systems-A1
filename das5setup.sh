@@ -47,6 +47,7 @@ initial_setup() {
   echo "Setup done"
 }
 
+# Setups hadoop, spark and hibench
 if [[ $1 == "--setup" ]]; then
   initial_setup
   exit 0
