@@ -32,6 +32,5 @@
     <property>
             <name>mapreduce.reduce.env</name>
             <value>HADOOP_MAPRED_HOME=$HADOOP_HOME</value>
-    </property>
-
+    </property> 
 </configuration>
