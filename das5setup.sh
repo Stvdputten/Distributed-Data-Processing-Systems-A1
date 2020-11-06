@@ -212,7 +212,8 @@ if [[ $1 == "--experiments" ]]; then
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # setup configured dataset size from hibench.conf
-  ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/micro/wordcount/prepare/prepare.sh" 
+  #ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/micro/wordcount/prepare/prepare.sh" 
+  ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/ml/kmeans/prepare/prepare.sh" 
   #echo "" > $HIBENCH_HOME/report/hibench.report
 
   start=1
@@ -221,15 +222,18 @@ if [[ $1 == "--experiments" ]]; then
     printf "\n"
     echo "Running experiment: $i"
 
-    ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/hadoop/run.sh"
+    #ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/hadoop/run.sh"
+    ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
     wait
-    sh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/spark/run.sh"
+    #ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/spark/run.sh"
+    ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/ml/kmeans/spark/run.sh"
     wait
   done
 
   # show results
   echo "Results are shown:"
   cat $HIBENCH_HOME/report/hibench.report
+  cp $HIBENCH_HOME/report/hibench.report experiments/
   wait
   exit 0
 fi
