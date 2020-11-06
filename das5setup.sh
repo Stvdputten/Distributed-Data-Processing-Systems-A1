@@ -28,23 +28,27 @@ check_requirements() {
 #  Setups hadoop and spark and Hibench
 initial_setup() {
   echo "Starting setup"
-  echo "Downloading Hadoop & Spark & HiBench"
+  echo "Downloading Hadoop & Spark & HiBench & Maven "
   wget https://apache.mirrors.nublue.co.uk/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
   wget https://mirror.novg.net/apache/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
+  wget https://mirror.lyrahosting.com/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
   git clone https://github.com/Intel-bigdata/HiBench.git ~/lib/hibench
 
   # create lib where hadoop and spark will be stored
-  mkdir -p ~/lib/hadoop ~/lib/spark
+  mkdir -p ~/lib/hadoop ~/lib/spark ~/lib/maven
 
   echo "Extracting files to lib"
   # extract to correct folders
   tar zxf hadoop-3.3.0.tar.gz -C ~/lib/hadoop --strip-components=1
   tar zxf spark-3.0.1-bin-hadoop3.2.tgz -C ~/lib/spark --strip-components=1
+  tar zxf apache-maven-3.6.3-bin.tar.gz -C ~/lib/maven --strip-components=1
 
   echo "Cleaning up"
   # rm tgz
-  rm hadoop-3.3.0.tar.gz spark-3.0.1-bin-hadoop3.2.tgz
+  rm hadoop-3.3.0.tar.gz spark-3.0.1-bin-hadoop3.2.tgz apache-maven-3.6.3-bin.tar.gz
   echo "Setup done"
+  check_requirements
+  echo "Don't forget to setup the environment variables manually" 
 }
 
 # Setups hadoop, spark and hibench
@@ -173,17 +177,18 @@ if [[ $1 == "--experiments" ]]; then
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # setup configured dataset size from hibench.conf
-  ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/micro/wordcount/prepare/prepare.sh"
+  ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/micro/wordcount/prepare/prepare.sh" 
+  #echo "" > $HIBENCH_HOME/report/hibench.report
 
-  # TODO NOT RUNNING ALL EXPERIMENTS FOR SCALA/SPARK?
-  for i in {1..$2..1}; do
+  start=1
+  for i in $(eval echo "{$start..$2}")
+  do
     printf "\n"
     echo "Running experiment: $i"
-    printf "\n"
 
     ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/hadoop/run.sh"
     wait
-    ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/spark/run.sh"
+    sh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/spark/run.sh"
     wait
   done
 
@@ -220,6 +225,7 @@ if [[ $1 == "--start-all" ]]; then
   wait
   exit 0
 fi
+
 # Stops all drivers and workers
 stop_all() {
   # declare node
@@ -242,14 +248,51 @@ if [[ $1 == "--stop-all" ]]; then
   exit 0
 fi
 
+# Get the configurations 
+get_configs() {
+  # copy current settings to configurations
+  cp $HADOOP_HOME/etc/hadoop/* configurations/hadoop/etc/hadoop/
+  cp $SPARKHOME/conf/* configurations/spark/conf/
+  cp $SPARKHOME/conf/* configurations/spark/conf/
+
+  echo "Configuration updated in /configurations"
+}
+
+#  Get the configurations
+if [[ $1 == "--get-configs" ]]; then
+  echo "Stopping all"
+  get_configs
+  wait
+  exit 0
+fi
+
+# Update frameworks configs
+update_configs() {
+  cp configurations/hadoop/etc/hadoop/* $HADOOP_HOME/etc/hadoop/
+  cp configurations/spark/conf/* $SPARKHOME/conf/ 
+  cp configurations/spark/conf/* $SPARKHOME/conf/ 
+
+  echo "Frameworks have their configs updated"
+}
+
+# Update frameworks configs
+if [[ $1 == "--update-configs" ]]; then
+  echo "Stopping all"
+  update_configs
+  wait
+  exit 0
+fi
+
 # Help option
 if [[ $1 == "--help" || $1 == "-h" ]]; then
   echo "Usage: $0 [option]"
   echo "--setup                     Setup all initial software and packages."
   echo "--start-all                 Start cluster hadoop/spark default."
+  echo "--get-configs               Pulls configs from frameworks spark hadoop and HiBench"
+  echo "--update-configs            Sends configs from configuration to spark hadoop and HiBench"
 #  echo "local                     Start all current nodes."
   echo "--stop-all                  Stop cluster."
-  echo "--experiments               Runs the default experiments."
+  echo "--experiments n             Runs the default experiments n times."
   echo "--nodes n t                 Followed by (n) number of nodes to setup in das5 and (t) time allocation."
   exit 0
 fi
