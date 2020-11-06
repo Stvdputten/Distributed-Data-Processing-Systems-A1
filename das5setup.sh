@@ -90,6 +90,8 @@ initial_setup_hadoop() {
   # Start daemons
   ssh "${nodes[0]}" '$HADOOP_HOME/sbin/start-dfs.sh'
   ssh "${nodes[0]}" '$HADOOP_HOME/sbin/start-yarn.sh'
+  
+  #TODO set path to /var/scratch/$USER and not lib and export variables and source bashrc
 }
 
 # Finds nodes on das5 and setups HiBench
@@ -98,7 +100,7 @@ initial_setup_spark() {
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # setup driver node of spark (running next to yarn) in standalone and configs of spark in standalone
-  echo >$SPARK_HOME/conf/spark-env.sh
+  echo > $SPARK_HOME/conf/spark-env.sh
   echo "SPARK_MASTER_HOST=\"${nodes[0]}\"" >>$SPARK_HOME/conf/spark-env.sh
   # ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $SPARK_HOME/conf/slaves
   echo "SPARK_MASTER_PORT=1336" >>$SPARK_HOME/conf/spark-env.sh
@@ -150,7 +152,7 @@ if [[ $1 == "--nodes" ]]; then
 
   # actual preserving, normally 15 minutes, can be more
   preserve -# $2 -t 00:$3:00
-  sleep 1
+  sleep 2
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # if nodes got reserved we can run otherwise we have to wait
@@ -255,15 +257,14 @@ fi
 get_configs() {
   # copy current settings to configurations
   cp $HADOOP_HOME/etc/hadoop/* configurations/hadoop/etc/hadoop/
-  cp $SPARKHOME/conf/* configurations/spark/conf/
-  cp $SPARKHOME/conf/* configurations/spark/conf/
+  cp $SPARK_HOME/conf/* configurations/spark/conf/
+  cp $HIBENCH_HOME/conf/* configurations/hibench/conf/
 
   echo "Configuration updated in /configurations"
 }
 
 #  Get the configurations
 if [[ $1 == "--get-configs" ]]; then
-  echo "Stopping all"
   get_configs
   wait
   exit 0
@@ -272,15 +273,14 @@ fi
 # Update frameworks configs
 update_configs() {
   cp configurations/hadoop/etc/hadoop/* $HADOOP_HOME/etc/hadoop/
-  cp configurations/spark/conf/* $SPARKHOME/conf/ 
-  cp configurations/spark/conf/* $SPARKHOME/conf/ 
+  cp configurations/spark/conf/* $SPARK_HOME/conf/ 
+  cp configurations/hibench/conf/* $HIBENCH_HOME/conf/ 
 
   echo "Frameworks have their configs updated"
 }
 
 # Update frameworks configs
 if [[ $1 == "--update-configs" ]]; then
-  echo "Stopping all"
   update_configs
   wait
   exit 0
