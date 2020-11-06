@@ -22,6 +22,11 @@ check_requirements() {
     echo 'No HIBENCH_HOME set'
     echo 'Set HIBENCH_HOME env variable'
   fi
+
+  if [ command -v maven ]; then
+    echo 'No Maven set'
+    echo 'Set Path to maven binary'
+  fi
   source ~/.bashrc
 }
 
@@ -199,12 +204,11 @@ if [[ $1 == "--experiments" ]]; then
 fi
 
 
-# Mostly for local debugging assuming HDFS is correctly setup and SPARK knows how to connect to HDFS
-# TODO Needs to be expanded to only choose 1 worker node, which is most likely localhost
-if [[ $1 == "--local" ]]; then
+# Checks the requirements of environments variable, not if they are correct necessarily
+if [[ $1 == "--check-requirements" ]]; then
   check_requirements
-  echo "Setting up a node cluster of size 1"
-  echo "Setting up Hadoop & Spark"
+  echo "Requiments checked!"
+  echo "If not message than everything is set."
 
   start_all
   exit 0
@@ -289,7 +293,7 @@ if [[ $1 == "--help" || $1 == "-h" ]]; then
   echo "--start-all                 Start cluster hadoop/spark default."
   echo "--get-configs               Pulls configs from frameworks spark hadoop and HiBench"
   echo "--update-configs            Sends configs from configuration to spark hadoop and HiBench"
-#  echo "local                     Start all current nodes."
+  echo "---check-requirements       Check if the necessary Environment Variables are set"
   echo "--stop-all                  Stop cluster."
   echo "--experiments n             Runs the default experiments n times."
   echo "--nodes n t                 Followed by (n) number of nodes to setup in das5 and (t) time allocation."
