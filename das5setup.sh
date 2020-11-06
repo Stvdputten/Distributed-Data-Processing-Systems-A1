@@ -224,6 +224,7 @@ if [[ $1 == "--start-all" ]]; then
   wait
   exit 0
 fi
+
 # Stops all drivers and workers
 stop_all() {
   # declare node
@@ -235,7 +236,7 @@ stop_all() {
   ssh ${nodes[0]} '$SPARK_HOME/sbin/stop-all.sh'
 
   # deallocates reservation
-  #scancel "$(preserve -llist | grep ddps2006 | awk '{print $1}')"
+  scancel "$(preserve -llist | grep ddps2006 | awk '{print $1}')"
 }
 
 # Stops all drivers and workers
@@ -246,11 +247,48 @@ if [[ $1 == "--stop-all" ]]; then
   exit 0
 fi
 
+# Get the configurations 
+get_configs() {
+  # copy current settings to configurations
+  cp $HADOOP_HOME/etc/hadoop/* configurations/hadoop/etc/hadoop/
+  cp $SPARKHOME/conf/* configurations/spark/conf/
+  cp $SPARKHOME/conf/* configurations/spark/conf/
+
+  echo "Configuration updated in /configurations"
+}
+
+#  Get the configurations
+if [[ $1 == "--get-configs" ]]; then
+  echo "Stopping all"
+  get_configs
+  wait
+  exit 0
+fi
+
+# Update frameworks configs
+update_configs() {
+  cp configurations/hadoop/etc/hadoop/* $HADOOP_HOME/etc/hadoop/
+  cp configurations/spark/conf/* $SPARKHOME/conf/ 
+  cp configurations/spark/conf/* $SPARKHOME/conf/ 
+
+  echo "Frameworks have their configs updated"
+}
+
+# Update frameworks configs
+if [[ $1 == "--update-configs" ]]; then
+  echo "Stopping all"
+  update_configs
+  wait
+  exit 0
+fi
+
 # Help option
 if [[ $1 == "--help" || $1 == "-h" ]]; then
   echo "Usage: $0 [option]"
   echo "--setup                     Setup all initial software and packages."
   echo "--start-all                 Start cluster hadoop/spark default."
+  echo "--get-configs               Pulls configs from frameworks spark hadoop and HiBench"
+  echo "--update-configs            Sends configs from configuration to spark hadoop and HiBench"
 #  echo "local                     Start all current nodes."
   echo "--stop-all                  Stop cluster."
   echo "--experiments n             Runs the default experiments n times."
