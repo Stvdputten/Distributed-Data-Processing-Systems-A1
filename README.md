@@ -45,6 +45,7 @@ Only tested on clean other clusters e.g. `fs2.das5.science.uva.nl`
 ```
 cd Distributed-Data-Processing-Systems-A1
 ./das5setup --setup 
+source ~/.bashrc
 ```
 
 **3. Startup multi cluster**
