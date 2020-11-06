@@ -66,6 +66,9 @@ initial_setup() {
   source ~/.bashrc
   check_requirements
 
+  # give the current configs in all frameworks
+  update-configs
+
   echo "Setup done"
 }
 
