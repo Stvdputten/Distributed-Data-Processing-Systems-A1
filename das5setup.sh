@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 # Written by Stephan van der Putten s1528459
 
+# Update frameworks configs
+update_configs() {
+  cp configurations/hadoop/etc/hadoop/* $HADOOP_HOME/etc/hadoop/
+  cp configurations/spark/conf/* $SPARK_HOME/conf/ 
+  cp configurations/hibench/conf/* $HIBENCH_HOME/conf/ 
+
+  echo "Frameworks have their configs updated"
+} 
+
 # Check requirements SPARK_HOME and HADOOP_HOME and JAVA_HOME and HIBENCH_HOME
 check_requirements() {
   if [ -z "$SPARK_HOME" ]; then
@@ -23,7 +32,7 @@ check_requirements() {
     echo 'Set HIBENCH_HOME env variable'
   fi
 
-  if [ command -v maven ]; then
+  if ! [[ -x "$(command -v mvn)" ]]; then
     echo 'No Maven set'
     echo 'Set Path to maven binary'
   fi
@@ -34,40 +43,43 @@ initial_setup() {
   # PATH to install directory 
   install_dir=/var/scratch/$USER
 
-  echo "Starting setup"
-  echo "Downloading Hadoop & Spark & HiBench & Maven "
-  wget -nc https://apache.mirrors.nublue.co.uk/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
-  wget -nc https://mirror.novg.net/apache/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
-  wget -nc https://apache.mirror.wearetriple.com/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz 
-  git clone https://github.com/Intel-bigdata/HiBench.git $install_dir/hibench
+  #echo "Starting setup"
+  #echo "Downloading Hadoop & Spark & HiBench & Maven "
+  #wget -nc https://apache.mirrors.nublue.co.uk/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
+  #wget -nc https://mirror.novg.net/apache/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
+  #wget -nc https://apache.mirror.wearetriple.com/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz 
+  #git clone https://github.com/Intel-bigdata/HiBench.git $install_dir/hibench
 
-  # create lib where hadoop and spark and maven will be stored
-  mkdir -p $install_dir/hadoop $install_dir/spark $install_dir/maven 
+  ## create lib where hadoop and spark and maven will be stored
+  #mkdir -p $install_dir/hadoop $install_dir/spark $install_dir/maven 
 
-  echo "Extracting files to install directory"
-  # extract to correct folders
-  tar zxf hadoop-2.10.1.tar.gz -C $install_dir/hadoop --strip-components=1
-  tar zxf spark-2.4.7-bin-hadoop2.7.tgz -C $install_dir/spark --strip-components=1
-  tar zxf apache-maven-3.6.3-bin.tar.gz -C $install_dir/maven --strip-components=1
+  #echo "Extracting files to install directory"
+  ## extract to correct folders
+  #tar zxf hadoop-2.10.1.tar.gz -C $install_dir/hadoop --strip-components=1
+  #tar zxf spark-2.4.7-bin-hadoop2.7.tgz -C $install_dir/spark --strip-components=1
+  #tar zxf apache-maven-3.6.3-bin.tar.gz -C $install_dir/maven --strip-components=1
 
-  echo "Cleaning up"
-  # rm tgz
-  rm hadoop-2.10.1.tar.gz spark-2.4.7-bin-hadoop2.7.tgz apache-maven-3.6.3-bin.tar.gz
+  #echo "Cleaning up"
+  ## rm tgz
+  #rm hadoop-2.10.1.tar.gz spark-2.4.7-bin-hadoop2.7.tgz apache-maven-3.6.3-bin.tar.gz
 
-  # Update environment variables
-  # assuming bashrc needs only these variables
-  cp configuration/bashrc ~/.bashrc
+  ## Update environment variables
+  ## assuming bashrc needs only these variables
+  cp configurations/bashrc ~/.bashrc
   echo "export HADOOP_HOME=$install_dir/hadoop" >> ~/.bashrc
   echo "export SPARK_HOME=$install_dir/spark" >> ~/.bashrc
   # assuming the current java is java 8
   echo "export JAVA_HOME=$(sed 's/\(\/\jre\/bin\/java\)//g' <<<  "$(ls -la $(ls -la $(which java) | awk '{ print $NF}') | awk '{ print $NF }')")" >> ~/.bashrc
   echo "export HIBENCH_HOME=$install_dir/hibench" >> ~/.bashrc
-  echo "export PATH=$PATH:$install_dir/maven/bin" >> ~/.bashrc
+  echo "export PATH=\$PATH:$install_dir/maven/bin" >> ~/.bashrc
   source ~/.bashrc
   check_requirements
 
   # give the current configs in all frameworks
-  update-configs
+  update_configs
+
+  # link to install directory in scratch
+  ln -s $install_dir ~/scratch
 
   echo "Setup done"
 }
@@ -284,15 +296,6 @@ if [[ $1 == "--get-configs" ]]; then
   wait
   exit 0
 fi
-
-# Update frameworks configs
-update_configs() {
-  cp configurations/hadoop/etc/hadoop/* $HADOOP_HOME/etc/hadoop/
-  cp configurations/spark/conf/* $SPARK_HOME/conf/ 
-  cp configurations/hibench/conf/* $HIBENCH_HOME/conf/ 
-
-  echo "Frameworks have their configs updated"
-}
 
 # Update frameworks configs
 if [[ $1 == "--update-configs" ]]; then
