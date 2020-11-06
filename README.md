@@ -39,7 +39,9 @@ $HIBENCH_HOME | The Hibench installation location.
 git clone https://github.com/Stvdputten/Distributed-Data-Processing-Systems-A1.git
 ```
 
-**2. Deploy setup**
+**2. Deploy setup** (optional)
+In case you choose to use this option, declare the environment variables mentioned above. 
+
 ```
 cd Distributed-Data-Processing-Systems-A1
 ./das5setup --setup 
@@ -52,7 +54,7 @@ cd Distributed-Data-Processing-Systems-A1
 ```
 
 ## Run experiments
-> In case you want to use the same configurations as we used see /configurations/hadoop , /configurations/spark , /configurations/hibench
+> In case you want to use the same configurations as we used see /configurations/hadoop , /configurations/spark , /configurations/hibench do not forget to rebuild Hibench
 
 Now that the cluster is setup and Hibench has been built, we can run the experiments n times
 
