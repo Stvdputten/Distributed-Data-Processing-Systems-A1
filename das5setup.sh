@@ -27,33 +27,46 @@ check_requirements() {
     echo 'No Maven set'
     echo 'Set Path to maven binary'
   fi
-  source ~/.bashrc
 }
 
 #  Setups hadoop and spark and Hibench
 initial_setup() {
+  # PATH to install directory 
+  install_dir=/var/scratch/$USER
+
   echo "Starting setup"
   echo "Downloading Hadoop & Spark & HiBench & Maven "
   wget -nc https://apache.mirrors.nublue.co.uk/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
   wget -nc https://mirror.novg.net/apache/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
   wget -nc https://apache.mirror.wearetriple.com/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz 
-  git clone https://github.com/Intel-bigdata/HiBench.git ~/lib/hibench
+  git clone https://github.com/Intel-bigdata/HiBench.git $install_dir/hibench
 
-  # create lib where hadoop and spark will be stored
-  mkdir -p ~/lib/hadoop ~/lib/spark ~/lib/maven
+  # create lib where hadoop and spark and maven will be stored
+  mkdir -p $install_dir/hadoop $install_dir/spark $install_dir/maven 
 
-  echo "Extracting files to lib"
+  echo "Extracting files to install directory"
   # extract to correct folders
-  tar zxf hadoop-2.10.1.tar.gz -C ~/lib/hadoop --strip-components=1
-  tar zxf spark-2.4.7-bin-hadoop2.7.tgz -C ~/lib/spark --strip-components=1
-  tar zxf apache-maven-3.6.3-bin.tar.gz -C ~/lib/maven --strip-components=1
+  tar zxf hadoop-2.10.1.tar.gz -C $install_dir/hadoop --strip-components=1
+  tar zxf spark-2.4.7-bin-hadoop2.7.tgz -C $install_dir/spark --strip-components=1
+  tar zxf apache-maven-3.6.3-bin.tar.gz -C $install_dir/maven --strip-components=1
 
   echo "Cleaning up"
   # rm tgz
   rm hadoop-2.10.1.tar.gz spark-2.4.7-bin-hadoop2.7.tgz apache-maven-3.6.3-bin.tar.gz
-  echo "Setup done"
+
+  # Update environment variables
+  # assuming bashrc needs only these variables
+  cp configuration/bashrc ~/.bashrc
+  echo "export HADOOP_HOME=$install_dir/hadoop" >> ~/.bashrc
+  echo "export SPARK_HOME=$install_dir/spark" >> ~/.bashrc
+  # assuming the current java is java 8
+  echo "export JAVA_HOME=$(sed 's/\(\/\jre\/bin\/java\)//g' <<<  "$(ls -la $(ls -la $(which java) | awk '{ print $NF}') | awk '{ print $NF }')")" >> ~/.bashrc
+  echo "export HIBENCH_HOME=$install_dir/hibench" >> ~/.bashrc
+  echo "export PATH=$PATH:$install_dir/maven/bin" >> ~/.bashrc
+  source ~/.bashrc
   check_requirements
-  echo "Don't forget to setup the environment variables manually" 
+
+  echo "Setup done"
 }
 
 if [[ $1 == "--setup" ]]; then
@@ -91,7 +104,6 @@ initial_setup_hadoop() {
   ssh "${nodes[0]}" '$HADOOP_HOME/sbin/start-dfs.sh'
   ssh "${nodes[0]}" '$HADOOP_HOME/sbin/start-yarn.sh'
   
-  #TODO set path to /var/scratch/$USER and not lib and export variables and source bashrc
 }
 
 # Finds nodes on das5 and setups HiBench
@@ -289,6 +301,7 @@ fi
 # Help option
 if [[ $1 == "--help" || $1 == "-h" ]]; then
   echo "Usage: $0 [option]"
+  echo "--nodes n t                 Start cluster followed by (n) number of nodes to setup in das5 and (t) time allocation."
   echo "--setup                     Setup all initial software and packages."
   echo "--start-all                 Start cluster hadoop/spark default."
   echo "--get-configs               Pulls configs from frameworks spark hadoop and HiBench"
@@ -296,7 +309,6 @@ if [[ $1 == "--help" || $1 == "-h" ]]; then
   echo "---check-requirements       Check if the necessary Environment Variables are set"
   echo "--stop-all                  Stop cluster."
   echo "--experiments n             Runs the default experiments n times."
-  echo "--nodes n t                 Followed by (n) number of nodes to setup in das5 and (t) time allocation."
   exit 0
 fi
 
