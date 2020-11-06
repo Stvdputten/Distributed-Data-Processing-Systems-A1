@@ -73,7 +73,6 @@ initial_setup() {
   echo "export HIBENCH_HOME=$install_dir/hibench" >> ~/.bashrc
   echo "export PATH=\$PATH:$install_dir/maven/bin" >> ~/.bashrc
   echo >> ~/.bashrc
-  source ~/.bashrc
   check_requirements
 
   # give the current configs in all frameworks
@@ -82,6 +81,7 @@ initial_setup() {
   # link to install directory in scratch
   ln -s $install_dir ~/scratch
 
+  source ~/.bashrc
   echo "Setup done"
 }
 
@@ -103,8 +103,9 @@ initial_setup_hadoop() {
   sed -i "26s/<value>.*</<value>${nodes[0]}</g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
 
   # setup worker nodes
-  echo >$HADOOP_HOME/etc/hadoop/slaves
+  echo "" > $HADOOP_HOME/etc/hadoop/slaves
   for node in "${nodes[@]:1}"; do
+    echo > $HADOOP_HOME/etc/hadoop/slaves
     ssh "$node" 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >>$HADOOP_HOME/etc/hadoop/slaves
     #    echo $node >>$HADOOP_HOME/etc/hadoop/slaves
 
@@ -128,7 +129,7 @@ initial_setup_spark() {
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # setup driver node of spark (running next to yarn) in standalone and configs of spark in standalone
-  echo > $SPARK_HOME/conf/spark-env.sh
+  echo "" > $SPARK_HOME/conf/spark-env.sh
   echo "SPARK_MASTER_HOST=\"${nodes[0]}\"" >>$SPARK_HOME/conf/spark-env.sh
   # ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $SPARK_HOME/conf/slaves
   echo "SPARK_MASTER_PORT=1336" >>$SPARK_HOME/conf/spark-env.sh
