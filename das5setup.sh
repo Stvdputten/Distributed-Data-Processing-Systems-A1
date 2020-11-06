@@ -29,9 +29,9 @@ check_requirements() {
 initial_setup() {
   echo "Starting setup"
   echo "Downloading Hadoop & Spark & HiBench & Maven "
-  wget https://apache.mirrors.nublue.co.uk/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
-  wget https://mirror.novg.net/apache/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
-  wget https://mirror.lyrahosting.com/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+  wget -nc https://apache.mirrors.nublue.co.uk/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
+  wget -nc https://mirror.novg.net/apache/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
+  wget -nc https://apache.mirror.wearetriple.com/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz 
   git clone https://github.com/Intel-bigdata/HiBench.git ~/lib/hibench
 
   # create lib where hadoop and spark will be stored
@@ -39,13 +39,13 @@ initial_setup() {
 
   echo "Extracting files to lib"
   # extract to correct folders
-  tar zxf hadoop-3.3.0.tar.gz -C ~/lib/hadoop --strip-components=1
-  tar zxf spark-3.0.1-bin-hadoop3.2.tgz -C ~/lib/spark --strip-components=1
+  tar zxf hadoop-2.10.1.tar.gz -C ~/lib/hadoop --strip-components=1
+  tar zxf spark-2.4.7-bin-hadoop2.7.tgz -C ~/lib/spark --strip-components=1
   tar zxf apache-maven-3.6.3-bin.tar.gz -C ~/lib/maven --strip-components=1
 
   echo "Cleaning up"
   # rm tgz
-  rm hadoop-3.3.0.tar.gz spark-3.0.1-bin-hadoop3.2.tgz apache-maven-3.6.3-bin.tar.gz
+  rm hadoop-2.10.1.tar.gz spark-2.4.7-bin-hadoop2.7.tgz apache-maven-3.6.3-bin.tar.gz
   echo "Setup done"
   check_requirements
   echo "Don't forget to setup the environment variables manually" 
