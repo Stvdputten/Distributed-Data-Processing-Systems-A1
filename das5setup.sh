@@ -43,25 +43,25 @@ initial_setup() {
   # PATH to install directory 
   install_dir=/var/scratch/$USER
 
-  #echo "Starting setup"
-  #echo "Downloading Hadoop & Spark & HiBench & Maven "
-  #wget -nc https://apache.mirrors.nublue.co.uk/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
-  #wget -nc https://mirror.novg.net/apache/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
-  #wget -nc https://apache.mirror.wearetriple.com/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz 
-  #git clone https://github.com/Intel-bigdata/HiBench.git $install_dir/hibench
+  echo "Starting setup"
+  echo "Downloading Hadoop & Spark & HiBench & Maven "
+  wget -nc https://apache.mirrors.nublue.co.uk/hadoop/common/hadoop-2.10.1/hadoop-2.10.1.tar.gz
+  wget -nc https://mirror.novg.net/apache/spark/spark-2.4.7/spark-2.4.7-bin-hadoop2.7.tgz
+  wget -nc https://apache.mirror.wearetriple.com/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz 
+  git clone https://github.com/Intel-bigdata/HiBench.git $install_dir/hibench
 
-  ## create lib where hadoop and spark and maven will be stored
-  #mkdir -p $install_dir/hadoop $install_dir/spark $install_dir/maven 
+  # create lib where hadoop and spark and maven will be stored
+  mkdir -p $install_dir/hadoop $install_dir/spark $install_dir/maven 
 
-  #echo "Extracting files to install directory"
-  ## extract to correct folders
-  #tar zxf hadoop-2.10.1.tar.gz -C $install_dir/hadoop --strip-components=1
-  #tar zxf spark-2.4.7-bin-hadoop2.7.tgz -C $install_dir/spark --strip-components=1
-  #tar zxf apache-maven-3.6.3-bin.tar.gz -C $install_dir/maven --strip-components=1
+  echo "Extracting files to install directory"
+  # extract to correct folders
+  tar zxf hadoop-2.10.1.tar.gz -C $install_dir/hadoop --strip-components=1
+  tar zxf spark-2.4.7-bin-hadoop2.7.tgz -C $install_dir/spark --strip-components=1
+  tar zxf apache-maven-3.6.3-bin.tar.gz -C $install_dir/maven --strip-components=1
 
-  #echo "Cleaning up"
-  ## rm tgz
-  #rm hadoop-2.10.1.tar.gz spark-2.4.7-bin-hadoop2.7.tgz apache-maven-3.6.3-bin.tar.gz
+  echo "Cleaning up"
+  # rm tgz
+  rm hadoop-2.10.1.tar.gz spark-2.4.7-bin-hadoop2.7.tgz apache-maven-3.6.3-bin.tar.gz
 
   ## Update environment variables
   ## assuming bashrc needs only these variables
