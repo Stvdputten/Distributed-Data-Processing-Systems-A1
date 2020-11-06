@@ -19,11 +19,11 @@
     </property>
     <property>
         <name>yarn.resourcemanager.webapp.address</name>
-        <value>node122:6766</value>
+        <value>node305:6766</value>
     </property>
     <property>
 	<name>yarn.resourcemanager.hostname</name>
-	<value>node122</value>
+	<value>node305</value>
     </property>
     <property>
             <name>yarn.acl.enable</name>
