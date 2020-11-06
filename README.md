@@ -40,7 +40,7 @@ git clone https://github.com/Stvdputten/Distributed-Data-Processing-Systems-A1.g
 ```
 
 **2. Deploy setup** (optional)
-In case you choose to use this option, declare the environment variables mentioned above. 
+Only tested on clean other clusters e.g. `fs2.das5.science.uva.nl`
 
 ```
 cd Distributed-Data-Processing-Systems-A1
