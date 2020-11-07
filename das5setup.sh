@@ -223,8 +223,8 @@ if [[ $1 == "--experiments" ]]; then
     printf "\n"
     echo "Running experiment: $i"
 
-    ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
     ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/spark/run.sh"
+    #ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
     wait
   done
 

@@ -19,7 +19,7 @@
 <configuration>
      <property>
          <name>fs.default.name</name>
-         <value>hdfs://node401:1337</value>
+         <value>hdfs://10.149.2.8:1337</value>
      </property>
      <property>
         <name>hadoop.tmp.dir</name>
