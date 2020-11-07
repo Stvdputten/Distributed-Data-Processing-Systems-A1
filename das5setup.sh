@@ -170,7 +170,7 @@ initial_setup_hibench() {
   sed -i "11s/hdfs:\/\/.*:/hdfs:\/\/${nodes[0]}:/g" $HIBENCH_HOME/conf/hadoop.conf
 
   # build hibench benchmarks, currently only ml and micro
-  cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pmicro -Pml -Dspark=2.4 clean package
+  cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pml -Dspark=2.4 clean package
 
 }
 
@@ -212,7 +212,6 @@ if [[ $1 == "--experiments" ]]; then
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # setup configured dataset size from hibench.conf
-  #ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/micro/wordcount/prepare/prepare.sh" 
   ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/ml/kmeans/prepare/prepare.sh" 
   #echo "" > $HIBENCH_HOME/report/hibench.report
 
@@ -222,12 +221,8 @@ if [[ $1 == "--experiments" ]]; then
     printf "\n"
     echo "Running experiment: $i"
 
-    #ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/hadoop/run.sh"
-    ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
-    wait
-    #ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/micro/wordcount/spark/run.sh"
+    #ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
     ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/ml/kmeans/spark/run.sh"
-    wait
   done
 
   # show results

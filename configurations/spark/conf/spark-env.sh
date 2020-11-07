@@ -1,7 +1,7 @@
 
-SPARK_MASTER_HOST="node305"
+SPARK_MASTER_HOST="node401"
 SPARK_MASTER_PORT=1336
 SPARK_LOCAL_DIRS=/local/ddps2006/spark/
 SPARK_MASTER_WEBUI_PORT=1335
 SPARK_WORKER_MEMORY=15G
-HADOOP_CONF_DIR=/home/ddps2006/scratch/hadoop/etc/hadoop
+HADOOP_CONF_DIR=/var/scratch/ddps2006/hadoop/etc/hadoop

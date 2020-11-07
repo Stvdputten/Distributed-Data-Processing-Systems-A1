@@ -19,11 +19,11 @@
     </property>
     <property>
         <name>yarn.resourcemanager.webapp.address</name>
-        <value>node305:6766</value>
+        <value>node401:6766</value>
     </property>
     <property>
 	<name>yarn.resourcemanager.hostname</name>
-	<value>node305</value>
+	<value>node401</value>
     </property>
     <property>
             <name>yarn.acl.enable</name>
@@ -31,7 +31,7 @@
     </property>
     <property>
             <name>yarn.nodemanager.resource.memory-mb</name>
-            <value>15000</value>
+            <value>20000</value>
     </property>
     <property>
             <name>yarn.nodemanager.local-dirs</name>
@@ -40,9 +40,8 @@
     
     <property>
             <name>yarn.scheduler.maximum-allocation-mb</name>
-            <value>15000</value>
+            <value>20000</value>
     </property>
-    
 <!--
     <property>
             <name>yarn.scheduler.minimum-allocation-mb</name>
