@@ -1,4 +1,4 @@
-
+Type         Date       Time     Input_data_size      Duration(s)          Throughput(bytes/s)  Throughput/node     
 HadoopKmeans 2020-11-07 13:22:32 4016371654           196.711              20417626             1458401             
 ScalaSparkKmeans 2020-11-07 13:24:11 4016371654           92.956               43207234             3086231             
 HadoopKmeans 2020-11-07 13:27:25 4016371654           189.015              21248957             1517782             
