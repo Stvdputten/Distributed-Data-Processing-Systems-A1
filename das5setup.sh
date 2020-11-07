@@ -97,7 +97,7 @@ initial_setup_hadoop() {
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # setups master node
-  ssh "${nodes[0]}" 'mkdir -p /local/ddps2006/hadoop/'
+  ssh "${nodes[0]}" "mkdir -p /local/$USER/hadoop/"
   master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
   sed -i "s/hdfs:\/\/.*:/hdfs:\/\/$master:/g" $HADOOP_HOME/etc/hadoop/core-site.xml
   sed -i "22s/<value>.*:/<value>$master:/g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
@@ -110,8 +110,8 @@ initial_setup_hadoop() {
     #    echo $node >>$HADOOP_HOME/etc/hadoop/slaves
 
     # Clean up local and setups up local directory
-    ssh "$node" 'rm -rf /local/ddps2006/hadoop/*'
-    ssh "$node" 'mkdir -p /local/ddps2006/hadoop/data'
+    ssh "$node" "rm -rf /local/$USER/hadoop/*"
+    ssh "$node" "mkdir -p /local/$USER/hadoop/data"
   done
 
   # Setup namenode
@@ -134,7 +134,7 @@ initial_setup_spark() {
   echo "SPARK_MASTER_HOST=\"$master\"" >>$SPARK_HOME/conf/spark-env.sh
   # ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $SPARK_HOME/conf/slaves
   echo "SPARK_MASTER_PORT=1336" >>$SPARK_HOME/conf/spark-env.sh
-  echo "SPARK_LOCAL_DIRS=/local/ddps2006/spark/" >>$SPARK_HOME/conf/spark-env.sh
+  echo "SPARK_LOCAL_DIRS=/local/$USER/spark/" >>$SPARK_HOME/conf/spark-env.sh
   echo "SPARK_MASTER_WEBUI_PORT=1335" >>$SPARK_HOME/conf/spark-env.sh
   #echo "SPARK_WORKER_INSTANCES="$(expr ${#nodes[@]} - 1)"" >> $SPARK_HOME/conf/spark-env.sh
   echo "SPARK_WORKER_MEMORY=15G" >>$SPARK_HOME/conf/spark-env.sh
@@ -142,8 +142,8 @@ initial_setup_spark() {
   # Necessary for working with yarn
   echo "HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop" >>$SPARK_HOME/conf/spark-env.sh
 
-  ssh "$master" 'rm -rf /local/ddps2006/spark/*'
-  ssh "$master" 'mkdir -p /local/ddps2006/spark/'
+  ssh "$master" "rm -rf /local/$USER/spark/*"
+  ssh "$master" "mkdir -p /local/$USER/spark/"
 
   printf "\n"
   # setup worker nodes of spark
@@ -154,8 +154,8 @@ initial_setup_spark() {
 
     #highbang connection
     ssh "$node" 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >>$SPARK_HOME/conf/slaves
-    ssh "$node" 'rm -rf /local/ddps2006/spark/*'
-    ssh "$node" 'mkdir -p /local/ddps2006/spark/'
+    ssh "$node" "rm -rf /local/$USER/spark/*"
+    ssh "$node" "mkdir -p /local/$USER/spark/"
   done
 
   # start the remote master
@@ -275,7 +275,7 @@ stop_all() {
   ssh ${nodes[0]} '$SPARK_HOME/sbin/stop-all.sh'
 
   # deallocates reservation
-  scancel "$(preserve -llist | grep ddps2006 | awk '{print $1}')"
+  scancel "$(preserve -llist | grep $USER | awk '{print $1}')"
 }
 
 # Stops all drivers and workers
