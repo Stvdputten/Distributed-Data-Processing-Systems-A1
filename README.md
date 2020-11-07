@@ -40,7 +40,6 @@ git clone https://github.com/Stvdputten/Distributed-Data-Processing-Systems-A1.g
 ```
 
 **2. Deploy setup** (optional)
-Only tested on clean other clusters e.g. `fs2.das5.science.uva.nl`
 
 ```
 cd Distributed-Data-Processing-Systems-A1
@@ -55,15 +54,19 @@ source ~/.bashrc
 ```
 
 ## Run experiments
-> In case you want to use the same configurations as we used see /configurations/hadoop , /configurations/spark , /configurations/hibench do not forget to rebuild Hibench
+> In case you want to use the same configurations as we used see /configurations/hadoop , /configurations/spark , /configurations/hibench do not forget to rebuild Hibench 
+> The settings can be changed in yarn-site.xml in the $HADOOP_HOME/etc/hadoop/ and $HIBENCH_HOME/conf/spark.conf for the experiments
+> Otherwise you can change the settings in the /configurations directory and run ./das5setup --update-configs
 
 Now that the cluster is setup and Hibench has been built, we can run the experiments n times
 
 ```
 ./das5setup --experiments 20
 ```
+The results are copied to `experiments/hibench.report`
 
 ## Deallocate cluster
+This deallocates the cluster on DAS-5
 ```
 ./das5setup --stop-all
 ```
@@ -75,6 +78,4 @@ Run to see the different options and explanation
 ```
 ## Acknowledgements
 
-This repository is open-source and created for the course Distributed Data Processing Systems (2020) of University Leiden, given by Alex Uta. 
-
-This readme is inspired by https://github.com/facebookarchive/Audio360 
+This repository is open-source and created for the course Distributed Data Processing Systems (2020) of University Leiden.
