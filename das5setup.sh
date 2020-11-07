@@ -73,6 +73,7 @@ initial_setup() {
   echo "export HIBENCH_HOME=$install_dir/hibench" >> ~/.bashrc
   echo "export PATH=\$PATH:$install_dir/maven/bin" >> ~/.bashrc
   echo >> ~/.bashrc
+  source ~/.bashrc
   check_requirements
 
   # give the current configs in all frameworks
