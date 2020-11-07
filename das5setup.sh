@@ -215,7 +215,9 @@ if [[ $1 == "--experiments" ]]; then
 
   # setup configured dataset size from hibench.conf
   ssh $master "$HIBENCH_HOME/bin/workloads/ml/kmeans/prepare/prepare.sh" 
-  #echo "" > $HIBENCH_HOME/report/hibench.report
+
+  # clean report when starting tests
+  # cp configurations/hibench.report > $HIBENCH_HOME/report/hibench.report
 
   start=1
   for i in $(eval echo "{$start..$2}")
@@ -224,7 +226,7 @@ if [[ $1 == "--experiments" ]]; then
     echo "Running experiment: $i"
 
     ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/spark/run.sh"
-    #ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
+    ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
     wait
   done
 
