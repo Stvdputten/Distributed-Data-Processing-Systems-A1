@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "DPS Assignemnt1"
 output:
   html_document:
     df_print: paged
@@ -9,8 +9,8 @@ Importing cs files from document
 
 
 ```{r}
-install.packages("dplyr")
-install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg"))
+#install.packages("dplyr")
+#install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg"))
 
 library(dplyr)
 #library(ggpubr)
@@ -26,7 +26,7 @@ we sent 0 for article setting and 1 for new settings
 
 
 hibench_Kmean_6nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_6_exp_hadoop_spark_original.report", sep="")
-hibench_Kmean_6nodes_new_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_6_exp_hadoop_spark_new.report", sep="")
+hibench_Kmean_6nodes_new_settings <- read.csv("~/Downloads/hibench_5workers1master.report", sep="")
 
 hibench_Kmean_6nodes_article_settings["node_numb"] <- "5"
 hibench_Kmean_6nodes_article_settings["settings"]<- "0"
@@ -36,7 +36,7 @@ hibench_Kmean_6nodes_new_settings["settings"]<- "1"
 
 
 hibench_Kmean_11nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_11_exp_hadoop_spark_original.report", sep="")
-hibench_Kmean_11nodes_new_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_11_exp_hadoop_spark_new.report", sep="")
+hibench_Kmean_11nodes_new_settings <- read.csv("~/Downloads/hibench_10workers1master.report", sep="")
 
 
 hibench_Kmean_11nodes_new_settings["node_numb"] <- "10"
@@ -48,7 +48,7 @@ hibench_Kmean_11nodes_article_settings["settings"] <- "0"
 
 
 hibench_Kmeans_15nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_15_exp_hadoop_spark_original.report", sep="")
-hibench_Kmeans_15nodes_new_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_15_exp_hadoop_spark_new.report", sep="")
+hibench_Kmeans_15nodes_new_settings <- read.csv("~/Downloads/hibench_15workers1master.report", sep="")
 
 hibench_Kmeans_15nodes_new_settings["node_numb"] <- "15"
 hibench_Kmeans_15nodes_new_settings["settings"]<- "1"
@@ -59,8 +59,9 @@ hibench_Kmeans_15nodes_article_settings["settings"] <- "0"
 
 ```
 
+Summary statistics are located at the end of the file
+
 joining dfs together
-and create a dataset for box plot so I dont have to reimport it if i mess up 
 ```{r}
 
 df_article_settings = rbind(hibench_Kmean_11nodes_article_settings, hibench_Kmean_6nodes_article_settings, hibench_Kmeans_15nodes_article_settings)
@@ -91,22 +92,7 @@ new_setting_box
  
 ```
 
-Now that we see that there is a large difference in means across both hadoop and Spark less see what the difference is between the new and old settings
 
-```{r}
-'
-library("dply")
-
-df_all = data.frame(spark_node_average=)
-                    hadoop_node_average = c()
-                    node_type = c("Art_6","Our_6", "Art_11", "Our_11", "Art_15", "Our_15") )
-
-box_all_compare <- ggplot(df_article_settings_box, aes(x = node_numb, y = Duration.s., fill= Type)) +
-  geom_boxplot() + ggtitle("K-means performace with Article Settings") + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("6","11","15")) #+ scale_y_continuous(limits = c(0,215))
-
-'
-
-```
 
 
 
@@ -201,11 +187,32 @@ t.test(Duration.s. ~ system_type , data = df_stat_test)
 
 
 ```
+
+
 ```{r}
 
 t.test(Duration.s. ~ settings, data = df_stat_test)
 
 ```
+
+Summary statics about mean deuration for each type of treatment
+
+```{r}
+df_sum_stat <- subset(df_bar, select = -c(Date , Time))
+
+print(summary(df_sum_stat))
+
+aggregate(df_sum_stat$Duration.s., list(df_sum_stat$Type), median)
+
+aggregate(df_sum_stat$Duration.s., list(df_sum_stat$node_numb, df_sum_stat$Type, df_sum_stat$settings ), median)
+
+#aggregate(df_sum_stat$Duration.s., list(df_sum_stat$node_numb, df_sum_stat$Type, df_sum_stat$settings ), count)
+
+#aggregate(hibench_Kmeans_15nodes_article_settings$Duration.s., list(hibench_Kmeans_15nodes_article_settings$Type), median)
+
+
+```
+
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
