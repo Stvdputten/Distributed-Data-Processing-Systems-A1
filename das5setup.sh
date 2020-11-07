@@ -97,16 +97,15 @@ initial_setup_hadoop() {
 
   # setups master node
   ssh "${nodes[0]}" 'mkdir -p /local/ddps2006/hadoop/'
-  #  master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
-  sed -i "s/hdfs:\/\/.*:/hdfs:\/\/${nodes[0]}:/g" $HADOOP_HOME/etc/hadoop/core-site.xml
-  sed -i "22s/<value>.*:/<value>${nodes[0]}:/g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
-  sed -i "26s/<value>.*</<value>${nodes[0]}</g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
+  master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
+  sed -i "s/hdfs:\/\/.*:/hdfs:\/\/$master:/g" $HADOOP_HOME/etc/hadoop/core-site.xml
+  sed -i "22s/<value>.*:/<value>$master:/g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
+  sed -i "26s/<value>.*</<value>$master</g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
 
   # setup worker nodes
   echo "" > $HADOOP_HOME/etc/hadoop/slaves
   for node in "${nodes[@]:1}"; do
-    echo > $HADOOP_HOME/etc/hadoop/slaves
-    ssh "$node" 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >>$HADOOP_HOME/etc/hadoop/slaves
+    ssh "$node" 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $HADOOP_HOME/etc/hadoop/slaves
     #    echo $node >>$HADOOP_HOME/etc/hadoop/slaves
 
     # Clean up local and setups up local directory
@@ -115,11 +114,11 @@ initial_setup_hadoop() {
   done
 
   # Setup namenode
-  ssh "${nodes[0]}" 'yes | $HADOOP_HOME/bin/hadoop namenode -format'
+  ssh "$master" 'yes | $HADOOP_HOME/bin/hadoop namenode -format'
 
   # Start daemons
-  ssh "${nodes[0]}" '$HADOOP_HOME/sbin/start-dfs.sh'
-  ssh "${nodes[0]}" '$HADOOP_HOME/sbin/start-yarn.sh'
+  ssh "$master" '$HADOOP_HOME/sbin/start-dfs.sh'
+  ssh "$master" '$HADOOP_HOME/sbin/start-yarn.sh'
   
 }
 
@@ -130,7 +129,8 @@ initial_setup_spark() {
 
   # setup driver node of spark (running next to yarn) in standalone and configs of spark in standalone
   echo "" > $SPARK_HOME/conf/spark-env.sh
-  echo "SPARK_MASTER_HOST=\"${nodes[0]}\"" >>$SPARK_HOME/conf/spark-env.sh
+  master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
+  echo "SPARK_MASTER_HOST=\"$master\"" >>$SPARK_HOME/conf/spark-env.sh
   # ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $SPARK_HOME/conf/slaves
   echo "SPARK_MASTER_PORT=1336" >>$SPARK_HOME/conf/spark-env.sh
   echo "SPARK_LOCAL_DIRS=/local/ddps2006/spark/" >>$SPARK_HOME/conf/spark-env.sh
@@ -141,8 +141,8 @@ initial_setup_spark() {
   # Necessary for working with yarn
   echo "HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop" >>$SPARK_HOME/conf/spark-env.sh
 
-  ssh "${nodes[0]}" 'rm -rf /local/ddps2006/spark/*'
-  ssh "${nodes[0]}" 'mkdir -p /local/ddps2006/spark/'
+  ssh "$master" 'rm -rf /local/ddps2006/spark/*'
+  ssh "$master" 'mkdir -p /local/ddps2006/spark/'
 
   printf "\n"
   # setup worker nodes of spark
@@ -158,7 +158,7 @@ initial_setup_spark() {
   done
 
   # start the remote master
-  ssh "${nodes[0]}" '$SPARK_HOME/sbin/start-all.sh'
+  ssh "$master" '$SPARK_HOME/sbin/start-all.sh'
 }
 
 # Setup for HiBench
@@ -167,7 +167,7 @@ initial_setup_hibench() {
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # declare hdfs address to hibench
-  sed -i "11s/hdfs:\/\/.*:/hdfs:\/\/${nodes[0]}:/g" $HIBENCH_HOME/conf/hadoop.conf
+  sed -i "11s/hdfs:\/\/.*:/hdfs:\/\/$master:/g" $HIBENCH_HOME/conf/hadoop.conf
 
   # build hibench benchmarks, currently only ml and micro
   cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pml -Dspark=2.4 clean package
@@ -210,9 +210,10 @@ fi
 if [[ $1 == "--experiments" ]]; then
   # declare nodes
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
+  master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
 
   # setup configured dataset size from hibench.conf
-  ssh ${nodes[0]} "$HIBENCH_HOME/bin/workloads/ml/kmeans/prepare/prepare.sh" 
+  ssh $master "$HIBENCH_HOME/bin/workloads/ml/kmeans/prepare/prepare.sh" 
   #echo "" > $HIBENCH_HOME/report/hibench.report
 
   start=1
@@ -221,8 +222,9 @@ if [[ $1 == "--experiments" ]]; then
     printf "\n"
     echo "Running experiment: $i"
 
-    #ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
-    ssh "${nodes[0]}" "$HIBENCH_HOME/bin/workloads/ml/kmeans/spark/run.sh"
+    ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
+    ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/spark/run.sh"
+    wait
   done
 
   # show results
