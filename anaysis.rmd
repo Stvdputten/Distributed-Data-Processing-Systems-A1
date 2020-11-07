@@ -178,12 +178,10 @@ one.way_settings <- aov(Duration.s. ~ settings, data = df_stat_test)
 summary(one.way_settings)
 
 
-
 one.way_nodenumber <- aov(Duration.s. ~ node_numb + system_type, data = df_stat_test)
 
 print("does the mean different with node number")
 summary(one.way_nodenumber)
-
 
 
 ```
@@ -194,6 +192,7 @@ If we now just a T-Test between each of the system types we can conclude spark i
 
 
 ```{r}
+
 
 t.test(Duration.s. ~ system_type , data = df_stat_test)
 
