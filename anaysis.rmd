@@ -1,0 +1,221 @@
+---
+title: "DPS Assignemnt1"
+output:
+  html_document:
+    df_print: paged
+---
+
+Importing cs files from document
+
+
+```{r}
+#install.packages("dplyr")
+#install.packages(c("ggplot2", "ggpubr", "tidyverse", "broom", "AICcmodavg"))
+
+library(dplyr)
+#library(ggpubr)
+#library(tidyverse)
+#library(broom)
+#library(AICcmodavg)
+library(ggplot2)
+
+```
+
+we sent 0 for article setting and 1 for new settings
+```{r}
+
+
+hibench_Kmean_6nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_6_exp_hadoop_spark_original.report", sep="")
+hibench_Kmean_6nodes_new_settings <- read.csv("~/Downloads/hibench_5workers1master.report", sep="")
+
+hibench_Kmean_6nodes_article_settings["node_numb"] <- "5"
+hibench_Kmean_6nodes_article_settings["settings"]<- "0"
+
+hibench_Kmean_6nodes_new_settings["node_numb"] <- "5"
+hibench_Kmean_6nodes_new_settings["settings"]<- "1" 
+
+
+hibench_Kmean_11nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_11_exp_hadoop_spark_original.report", sep="")
+hibench_Kmean_11nodes_new_settings <- read.csv("~/Downloads/hibench_10workers1master.report", sep="")
+
+
+hibench_Kmean_11nodes_new_settings["node_numb"] <- "10"
+hibench_Kmean_11nodes_new_settings["settings"]<- "1"
+
+hibench_Kmean_11nodes_article_settings["node_numb"] <- "10"
+hibench_Kmean_11nodes_article_settings["settings"] <- "0"
+
+
+
+hibench_Kmeans_15nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_15_exp_hadoop_spark_original.report", sep="")
+hibench_Kmeans_15nodes_new_settings <- read.csv("~/Downloads/hibench_15workers1master.report", sep="")
+
+hibench_Kmeans_15nodes_new_settings["node_numb"] <- "15"
+hibench_Kmeans_15nodes_new_settings["settings"]<- "1"
+
+hibench_Kmeans_15nodes_article_settings["node_numb"] <- "15"
+hibench_Kmeans_15nodes_article_settings["settings"] <- "0"
+
+
+```
+
+Summary statistics are located at the end of the file
+
+joining dfs together
+```{r}
+
+df_article_settings = rbind(hibench_Kmean_11nodes_article_settings, hibench_Kmean_6nodes_article_settings, hibench_Kmeans_15nodes_article_settings)
+df_new_setting = rbind(hibench_Kmean_11nodes_new_settings, hibench_Kmean_6nodes_new_settings, hibench_Kmeans_15nodes_new_settings)
+
+
+df_article_settings_box = df_article_settings
+df_new_settings_box = df_new_setting
+
+df_article_settings_bar = df_article_settings
+df_new_settings_bar = df_new_setting
+
+```
+
+now create 2 box plots 
+
+```{r}
+article_setting_box <- ggplot(df_article_settings_box, aes(x = node_numb, y = Duration.s., fill= Type)) +
+  geom_boxplot() + ggtitle("K-means performace with Article Settings") + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15")) 
+
+article_setting_box 
+
+
+new_setting_box <- ggplot(df_new_settings_box, aes(x = node_numb, y =Duration.s., fill= Type)) +
+  geom_boxplot()  + ggtitle("K-means performace with Our Settings") + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete((limits=c("5","10","15")))
+
+new_setting_box 
+ 
+```
+
+
+
+
+
+
+bar plot
+```{r}
+
+
+df_bar = rbind(df_article_settings_bar, df_new_settings_bar)
+df_bar["comb_settings"] <- paste(df_bar$Type , df_bar$settings)
+
+
+
+
+
+
+article_setting_bar <- ggplot(df_bar, aes(x = node_numb, y=Duration.s., fill = comb_settings)) + geom_bar(stat="identity" , position='dodge') +
+  ggtitle("K-means performace ") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15"), name="Number of Nodes") +
+  scale_fill_discrete(name="System, settings", labels = c("Hadoop, Article", "Hadoop , Our", "Spark , Article", "Spark , Our"))
+  
+
+
+
+article_setting_bar 
+
+
+
+
+
+```
+
+okay now need a ANOVA 
+H0: The means are equal for varables
+H1: The means are different 
+
+```{r}
+
+df_stat = df_bar
+
+df_stat["comb_settings_nodes"] = paste(df_stat$Type, df_stat$settings ,df_stat$node_numb)
+
+df_stat_test <- data.frame( df_stat$Duration.s.,  df_stat$comb_settings_nodes)
+colnames(df_stat_test) <- c("Duration.s." , "comb_settings_nodes" )
+
+one.way <- aov(Duration.s. ~ comb_settings_nodes, data = df_stat_test)
+
+
+
+
+summary(one.way)
+
+
+```
+So we find statistically significant difference between our treament set of setting, nodes, and System. We would now like to know is there a statically different results in our setting from the authors
+
+H0 : The means are equal for both variables 
+H1 ; the means are different for both variables 
+
+```{r}
+df_stat2 = df_bar
+
+df_stat2["comb_nodes"] = paste(df_stat$Type , df_stat$node_numb)
+
+df_stat_test <- data.frame( df_stat2$Duration.s.,  df_stat2$comb_nodes , df_stat2$settings, df_stat2$node_numb, df_stat2$Type)
+colnames(df_stat_test) <- c("Duration.s." , "comb_nodes" ,"settings", "node_numb", "system_type")
+
+one.way_settings <- aov(Duration.s. ~ settings, data = df_stat_test)
+
+summary(one.way_settings)
+
+
+
+one.way_nodenumber <- aov(Duration.s. ~ node_numb + system_type, data = df_stat_test)
+
+print("does the mean different with node number")
+summary(one.way_nodenumber)
+
+
+
+```
+The mean duration time of System Type( either Hadoop or spark is statistically significant at a significance of 0.05) but our setting changes do not make a statically significant change to the mean 
+
+
+If we now just a T-Test between each of the system types we can conclude spark is faster then Hadoop on K-means 
+
+
+```{r}
+
+
+t.test(Duration.s. ~ system_type , data = df_stat_test)
+
+
+
+```
+
+
+```{r}
+
+t.test(Duration.s. ~ settings, data = df_stat_test)
+
+```
+
+Summary statics about mean deuration for each type of treatment
+
+```{r}
+df_sum_stat <- subset(df_bar, select = -c(Date , Time))
+
+print(summary(df_sum_stat))
+
+aggregate(df_sum_stat$Duration.s., list(df_sum_stat$Type), median)
+
+aggregate(df_sum_stat$Duration.s., list(df_sum_stat$node_numb, df_sum_stat$Type, df_sum_stat$settings ), median)
+
+#aggregate(df_sum_stat$Duration.s., list(df_sum_stat$node_numb, df_sum_stat$Type, df_sum_stat$settings ), count)
+
+#aggregate(hibench_Kmeans_15nodes_article_settings$Duration.s., list(hibench_Kmeans_15nodes_article_settings$Type), median)
+
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
