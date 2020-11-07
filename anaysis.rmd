@@ -195,6 +195,7 @@ If we now just a T-Test between each of the system types we can conclude spark i
 
 ```{r}
 
+
 t.test(Duration.s. ~ system_type , data = df_stat_test)
 
 
