@@ -56,7 +56,7 @@ source ~/.bashrc
 
 ## Run experiments
 > In case you want to use the same configurations as we used see /configurations/hadoop , /configurations/spark , /configurations/hibench do not forget to rebuild Hibench.
-> The settings can be changed in yarn-site.xml in the $HADOOP_HOME/etc/hadoop/ and $HIBENCH_HOME/conf/spark.conf for the experiments.
+> The settings can be changed in yarn-site.xml in the $HADOOP_HOME/etc/hadoop/ and $HIBENCH_HOME/conf/spark.conf for the experiments, in case you change yarn-site.xml restart the cluster.
 > Otherwise you can change the settings in the /configurations directory and run ./das5setup --update-configs.
 > Results copied from $HIBENCH_HOME/report/hibench.report.
 
