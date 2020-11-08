@@ -40,7 +40,7 @@ git clone https://github.com/Stvdputten/Distributed-Data-Processing-Systems-A1.g
 ```
 
 **2. Deploy setup** (optional)
-| Make sure you set your settings in yarn-site.xml in the $HADOOP_HOME/etc/hadoop/ is set correctly when starting up, otherwise you have to restart.
+| Make sure you set your settings in yarn-site.xml to what you wish and the $HADOOP_HOME/etc/hadoop/ is set correctly when starting up, otherwise you have to restart.
 
 ```
 cd Distributed-Data-Processing-Systems-A1
@@ -55,9 +55,10 @@ source ~/.bashrc
 ```
 
 ## Run experiments
-> In case you want to use the same configurations as we used see /configurations/hadoop , /configurations/spark , /configurations/hibench do not forget to rebuild Hibench 
-> The settings can be changed in yarn-site.xml in the $HADOOP_HOME/etc/hadoop/ and $HIBENCH_HOME/conf/spark.conf for the experiments
-> Otherwise you can change the settings in the /configurations directory and run ./das5setup --update-configs
+> In case you want to use the same configurations as we used see /configurations/hadoop , /configurations/spark , /configurations/hibench do not forget to rebuild Hibench.
+> The settings can be changed in yarn-site.xml in the $HADOOP_HOME/etc/hadoop/ and $HIBENCH_HOME/conf/spark.conf for the experiments.
+> Otherwise you can change the settings in the /configurations directory and run ./das5setup --update-configs.
+> Results copied from $HIBENCH_HOME/report/hibench.report.
 
 Now that the cluster is setup and Hibench has been built, we can run the experiments n times
 
