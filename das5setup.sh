@@ -96,12 +96,12 @@ initial_setup_hadoop() {
   # declare reserved nodes
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
-  # setups master node
+  # setups driver node
   ssh "${nodes[0]}" "mkdir -p /local/$USER/hadoop/"
-  master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
-  sed -i "s/hdfs:\/\/.*:/hdfs:\/\/$master:/g" $HADOOP_HOME/etc/hadoop/core-site.xml
-  sed -i "22s/<value>.*:/<value>$master:/g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
-  sed -i "26s/<value>.*</<value>$master</g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
+  driver=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
+  sed -i "s/hdfs:\/\/.*:/hdfs:\/\/$driver:/g" $HADOOP_HOME/etc/hadoop/core-site.xml
+  sed -i "22s/<value>.*:/<value>$driver:/g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
+  sed -i "26s/<value>.*</<value>$driver</g" $HADOOP_HOME/etc/hadoop/yarn-site.xml
 
   # setup worker nodes
   echo "" > $HADOOP_HOME/etc/hadoop/slaves
@@ -115,11 +115,11 @@ initial_setup_hadoop() {
   done
 
   # Setup namenode
-  ssh "$master" 'yes | $HADOOP_HOME/bin/hadoop namenode -format'
+  ssh "$driver" 'yes | $HADOOP_HOME/bin/hadoop namenode -format'
 
   # Start daemons
-  ssh "$master" '$HADOOP_HOME/sbin/start-dfs.sh'
-  ssh "$master" '$HADOOP_HOME/sbin/start-yarn.sh'
+  ssh "$driver" '$HADOOP_HOME/sbin/start-dfs.sh'
+  ssh "$driver" '$HADOOP_HOME/sbin/start-yarn.sh'
   
 }
 
@@ -130,8 +130,8 @@ initial_setup_spark() {
 
   # setup driver node of spark (running next to yarn) in standalone and configs of spark in standalone
   echo "" > $SPARK_HOME/conf/spark-env.sh
-  master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
-  echo "SPARK_MASTER_HOST=\"$master\"" >>$SPARK_HOME/conf/spark-env.sh
+  driver=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
+  echo "SPARK_MASTER_HOST=\"$driver\"" >>$SPARK_HOME/conf/spark-env.sh
   # ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}' >> $SPARK_HOME/conf/slaves
   echo "SPARK_MASTER_PORT=1336" >>$SPARK_HOME/conf/spark-env.sh
   echo "SPARK_LOCAL_DIRS=/local/$USER/spark/" >>$SPARK_HOME/conf/spark-env.sh
@@ -142,8 +142,8 @@ initial_setup_spark() {
   # Necessary for working with yarn
   echo "HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop" >>$SPARK_HOME/conf/spark-env.sh
 
-  ssh "$master" "rm -rf /local/$USER/spark/*"
-  ssh "$master" "mkdir -p /local/$USER/spark/"
+  ssh "$driver" "rm -rf /local/$USER/spark/*"
+  ssh "$driver" "mkdir -p /local/$USER/spark/"
 
   printf "\n"
   # setup worker nodes of spark
@@ -158,8 +158,8 @@ initial_setup_spark() {
     ssh "$node" "mkdir -p /local/$USER/spark/"
   done
 
-  # start the remote master
-  ssh "$master" '$SPARK_HOME/sbin/start-all.sh'
+  # start the remote driver
+  ssh "$driver" '$SPARK_HOME/sbin/start-all.sh'
 }
 
 # Setup for HiBench
@@ -168,10 +168,10 @@ initial_setup_hibench() {
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
 
   # declare hdfs address to hibench
-  sed -i "11s/hdfs:\/\/.*:/hdfs:\/\/$master:/g" $HIBENCH_HOME/conf/hadoop.conf
+  sed -i "11s/hdfs:\/\/.*:/hdfs:\/\/$driver:/g" $HIBENCH_HOME/conf/hadoop.conf
 
   # build hibench benchmarks, currently only ml and micro
-  cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pml -Dspark=2.4 clean package
+  #cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pmicro -Pml -Dspark=2.4 clean package
 
 }
 
@@ -199,7 +199,7 @@ if [[ $1 == "--nodes" ]]; then
 
   printf "\n"
   echo "We have reserved node(s): ${nodes[@]}"
-  printf "The master is node: ${nodes[0]}"
+  printf "The driver is node: ${nodes[0]}"
   printf "\n"
 
   echo "Cluster is setup for spark and hadoop!"
@@ -208,13 +208,23 @@ if [[ $1 == "--nodes" ]]; then
 fi
 
 # Runs the experiments and $2 is the amount of times
-if [[ $1 == "--experiments" ]]; then
+if [[ $1 == "--experiments-1" ]]; then
   # declare nodes
   declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
-  master=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
+  driver=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
+
+  # make sure the setting is large for the benchmark
+  sed -i "3s/small/large/g" $HIBENCH_HOME/conf/hibench.conf
+  sed -i "3s/tiny/large/g" $HIBENCH_HOME/conf/hibench.conf
+  sed -i "3s/micro/large/g" $HIBENCH_HOME/conf/hibench.conf
+  sed -i "3s/large/large/g" $HIBENCH_HOME/conf/hibench.conf
+  sed -i "3s/huge/large/g" $HIBENCH_HOME/conf/hibench.conf
+  sed -i "3s/gigantic/large/g" $HIBENCH_HOME/conf/hibench.conf
+  cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pml -Dspark=2.4 clean package
+  cd -
 
   # setup configured dataset size from hibench.conf
-  ssh $master "$HIBENCH_HOME/bin/workloads/ml/kmeans/prepare/prepare.sh" 
+  ssh $driver "$HIBENCH_HOME/bin/workloads/ml/kmeans/prepare/prepare.sh" 
 
   # clean report when starting tests
   # cp configurations/hibench.report > $HIBENCH_HOME/report/hibench.report
@@ -225,19 +235,63 @@ if [[ $1 == "--experiments" ]]; then
     printf "\n"
     echo "Running experiment: $i"
 
-    ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/spark/run.sh"
-    ssh "$master" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
+    ssh "$driver" "$HIBENCH_HOME/bin/workloads/ml/kmeans/spark/run.sh"
+    ssh "$driver" "$HIBENCH_HOME/bin/workloads/ml/kmeans/hadoop/run.sh"
     wait
   done
 
   # show results
-  echo "Results are shown:"
+  echo "Results are shown for K-means:"
   cat $HIBENCH_HOME/report/hibench.report
   cp $HIBENCH_HOME/report/hibench.report experiments/
   wait
   exit 0
 fi
 
+# Runs the experiments and $2 is the amount of times
+if [[ $1 == "--experiments-2" ]]; then
+  # declare nodes
+  declare -a nodes=($(preserve -llist | grep $USER | awk '{for (i=9; i<NF; i++) printf $i " "; if (NF >= 9+$2) printf $NF;}'))
+  driver=$(ssh ${nodes[0]} 'ifconfig' | grep 'inet 10.149.*' | awk '{print $2}')
+
+  # build hibench benchmarks again using different setting
+  # small, large, huge
+  if [[ -n $3 ]]
+  then
+     sed -i "3s/tiny/$3/g" $HIBENCH_HOME/conf/hibench.conf # really small
+     sed -i "3s/small/$3/g" $HIBENCH_HOME/conf/hibench.conf
+     sed -i "3s/large/$3/g" $HIBENCH_HOME/conf/hibench.conf
+     sed -i "3s/huge/$3/g" $HIBENCH_HOME/conf/hibench.conf
+     sed -i "3s/gigantic/$3/g" $HIBENCH_HOME/conf/hibench.conf # takes for too long
+     sed -i "3s/bigdata/$3/g" $HIBENCH_HOME/conf/hibench.conf #takes far too long
+     cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pmicro -Pml -Dspark=2.4 clean package
+     cd -
+  fi
+
+  # setup configured dataset size from hibench.conf
+  ssh $driver "$HIBENCH_HOME/bin/workloads/micro/wordcount/prepare/prepare.sh" 
+
+  # clean report when starting tests
+  # cp configurations/hibench.report > $HIBENCH_HOME/report/hibench.report
+
+  start=1
+  for i in $(eval echo "{$start..$2}")
+  do
+    printf "\n"
+    echo "Running experiment: $i"
+
+    #ssh "$driver" "$HIBENCH_HOME/bin/workloads/micro/wordcount/hadoop/run.sh "
+    ssh "$driver" "$HIBENCH_HOME/bin/workloads/micro/wordcount/spark/run.sh"
+    wait
+  done
+
+  # show results
+  echo "Results for wordcount are shown:"
+  cat $HIBENCH_HOME/report/hibench.report
+  cp $HIBENCH_HOME/report/hibench.report experiments/
+  wait
+  exit 0
+fi
 
 # Checks the requirements of environments variable, not if they are correct necessarily
 if [[ $1 == "--check-requirements" ]]; then
@@ -320,7 +374,8 @@ if [[ $1 == "--help" || $1 == "-h" ]]; then
   echo "--update-configs            Sends configs from configuration to spark hadoop and HiBench"
   echo "---check-requirements       Check if the necessary Environment Variables are set"
   echo "--stop-all                  Stop cluster."
-  echo "--experiments n             Runs the default experiments n times."
+  echo "--experiments-1 n           Runs the k-means experiments n times."
+  echo "--experiments-2 n size      Runs the wordcount experiments n times. Size is optional, e.g. tiny, small, bigdata, large, huge, gigantic""
   exit 0
 fi
 
