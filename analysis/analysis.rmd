@@ -25,8 +25,8 @@ we sent 0 for article setting and 1 for new settings
 ```{r}
 
 
-hibench_Kmean_6nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_5workers1master_original.report", sep="")
-hibench_Kmean_6nodes_new_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_5workers1master.report", sep="")
+hibench_Kmean_6nodes_article_settings <- read.csv("../experiments/hibench_5workers1master_original.report", sep="")
+hibench_Kmean_6nodes_new_settings <- read.csv("../experiments/hibench_5workers1master.report", sep="")
 
 hibench_Kmean_6nodes_article_settings["node_numb"] <- "5"
 hibench_Kmean_6nodes_article_settings["settings"]<- "0"
@@ -35,8 +35,8 @@ hibench_Kmean_6nodes_new_settings["node_numb"] <- "5"
 hibench_Kmean_6nodes_new_settings["settings"]<- "1" 
 
 
-hibench_Kmean_11nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_10workers1master_original.report", sep="")
-hibench_Kmean_11nodes_new_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_10workers1master.report", sep="")
+hibench_Kmean_11nodes_article_settings <- read.csv("../experiments/hibench_10workers1master_original.report", sep="")
+hibench_Kmean_11nodes_new_settings <- read.csv("../experiments/hibench_10workers1master.report", sep="")
 
 
 hibench_Kmean_11nodes_new_settings["node_numb"] <- "10"
@@ -47,8 +47,8 @@ hibench_Kmean_11nodes_article_settings["settings"] <- "0"
 
 
 
-hibench_Kmeans_15nodes_article_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_15workers1master_original.report", sep="")
-hibench_Kmeans_15nodes_new_settings <- read.csv("~/Documents/distributed-A1/Distributed-Data-Processing-Systems-A1/experiments/hibench_15workers1master.report", sep="")
+hibench_Kmeans_15nodes_article_settings <- read.csv("../experiments/hibench_15workers1master_original.report", sep="")
+hibench_Kmeans_15nodes_new_settings <- read.csv("../experiments/hibench_15workers1master.report", sep="")
 
 hibench_Kmeans_15nodes_new_settings["node_numb"] <- "15"
 hibench_Kmeans_15nodes_new_settings["settings"]<- "1"
@@ -80,13 +80,13 @@ now create 2 box plots
 
 ```{r}
 article_setting_box <- ggplot(df_article_settings_box, aes(x = node_numb, y = Duration.s., fill= Type)) +
-  geom_boxplot() + ggtitle("K-means performace with Article Settings") + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15")) 
+  geom_boxplot() + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15")) + expand_limits(x = 0, y = 0)# + ggtitle("K-means performace with Article Settings") 
 
 article_setting_box 
 
 
 new_setting_box <- ggplot(df_new_settings_box, aes(x = node_numb, y =Duration.s., fill= Type)) +
-  geom_boxplot()  + ggtitle("K-means performace with Our Settings") + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete((limits=c("5","10","15")))
+  geom_boxplot()   + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15")) + expand_limits(x = 0, y = 0) #+ ggtitle("K-means performace with Our Settings")
 
 new_setting_box 
  
