@@ -19,11 +19,11 @@
     </property>
     <property>
         <name>yarn.resourcemanager.webapp.address</name>
-        <value>10.149.2.8:6766</value>
+        <value>10.149.2.6:6766</value>
     </property>
     <property>
 	<name>yarn.resourcemanager.hostname</name>
-	<value>10.149.2.8</value>
+	<value>10.149.2.6</value>
     </property>
     <property>
             <name>yarn.acl.enable</name>
@@ -31,7 +31,7 @@
     </property>
     <property>
             <name>yarn.nodemanager.resource.memory-mb</name>
-            <value>60000</value>
+            <value>20000</value>
     </property>
     <property>
             <name>yarn.nodemanager.local-dirs</name>
@@ -40,11 +40,12 @@
     
     <property>
             <name>yarn.scheduler.maximum-allocation-mb</name>
-            <value>60000</value>
+            <value>20000</value>
     </property>
     <property>
             <name>yarn.scheduler.maximum-allocation-vcores</name>
-            <value>32</value>
+            <value>56</value>
+            <description>should be the num of workers * cores per worker</description>
     </property>
     
 <!--
@@ -55,7 +56,7 @@
 -->
     <property>
             <name>yarn.nodemanager.resource.cpu-vcores</name>
-            <value>32</value>
+            <value>4</value>
     </property>
     <property>
             <name>yarn.nodemanager.vmem-check-enabled</name>
