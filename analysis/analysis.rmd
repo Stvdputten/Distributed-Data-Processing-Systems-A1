@@ -18,6 +18,7 @@ library(dplyr)
 #library(broom)
 #library(AICcmodavg)
 library(ggplot2)
+library(stats)
 
 ```
 
@@ -59,6 +60,41 @@ hibench_Kmeans_15nodes_article_settings["settings"] <- "0"
 
 ```
 
+we sent 0 for article setting and 1 for new settings
+```{r}
+
+
+hibench_Wordcount_small_article_settings <- read.csv("../experiments/hibench_wordcount_14workers_1master_original_small.report", sep="")
+hibench_Wordcount_small_new_settings <- read.csv("../experiments/hibench_wordcount_14workers_1master_small_new.report", sep="")
+
+hibench_Wordcount_small_article_settings["dataset"] <- "0.32GB"
+hibench_Wordcount_small_article_settings["settings"]<- "0"
+
+hibench_Wordcount_small_new_settings["dataset"] <- "0.32GB"
+hibench_Wordcount_small_new_settings["settings"]<- "1" 
+
+
+hibench_Wordcount_large_article_settings <- read.csv("../experiments/hibench_wordcount_14workers_1master_original_large.report", sep="")
+hibench_Wordcount_large_new_settings <- read.csv("../experiments/hibench_wordcount_14workers_1master_new_large.report", sep="")
+
+hibench_Wordcount_large_article_settings["dataset"] <- "3.2GB"
+hibench_Wordcount_large_article_settings["settings"]<- "0"
+
+hibench_Wordcount_large_new_settings["dataset"] <- "3.2GB"
+hibench_Wordcount_large_new_settings["settings"]<- "1" 
+
+hibench_Wordcount_huge_article_settings <- read.csv("../experiments/hibench_wordcount_14workers_1master_original_huge.report", sep="")
+hibench_Wordcount_huge_new_settings <- read.csv("../experiments/hibench_wordcount_14workers_1master_new_huge.report", sep="")
+
+hibench_Wordcount_huge_article_settings["dataset"] <- "32GB"
+hibench_Wordcount_huge_article_settings["settings"]<- "0"
+
+hibench_Wordcount_huge_new_settings["dataset"] <- "32GB"
+hibench_Wordcount_huge_new_settings["settings"]<- "1" 
+
+```
+
+
 Summary statistics are located at the end of the file
 
 joining dfs together
@@ -74,26 +110,69 @@ df_new_settings_box = df_new_setting
 df_article_settings_bar = df_article_settings
 df_new_settings_bar = df_new_setting
 
+
+
+df_article_settings_e2 = rbind(hibench_Wordcount_large_article_settings, hibench_Wordcount_small_article_settings, hibench_Wordcount_huge_article_settings)
+df_new_setting_e2 = rbind(hibench_Wordcount_large_new_settings, hibench_Wordcount_small_new_settings, hibench_Wordcount_huge_new_settings)
+
+
+df_article_settings_box_e2 = df_article_settings_e2
+df_new_settings_box_e2 = df_new_setting_e2
+
+df_article_settings_bar_e2 = df_article_settings_e2
+df_new_settings_bar_e2 = df_new_setting_e2
+
+
+df_stat_test_e2 = rbind(df_article_settings_bar_e2, df_new_settings_bar_e2)
+
+
 ```
 
-now create 2 box plots 
+now create 2 box plots - for Experment 1
 
 ```{r}
 article_setting_box <- ggplot(df_article_settings_box, aes(x = node_numb, y = Duration.s., fill= Type)) +
-  geom_boxplot() + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15")) + expand_limits(x = 0, y = 0)# + ggtitle("K-means performace with Article Settings") 
+  geom_boxplot() + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15")) #+ expand_limits(x = 0, y = 0)# + ggtitle("K-means performace with Article Settings") 
 
 article_setting_box 
 
 
 new_setting_box <- ggplot(df_new_settings_box, aes(x = node_numb, y =Duration.s., fill= Type)) +
-  geom_boxplot()   + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15")) + expand_limits(x = 0, y = 0) #+ ggtitle("K-means performace with Our Settings")
+  geom_boxplot()   + xlab("Number of Nodes") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15")) #+ expand_limits(x = 0, y = 0) #+ ggtitle("K-means performace with Our Settings")
 
 new_setting_box 
  
 ```
 
+2 box plot for experment 2 
+
+```{r}
+article_setting_box <- ggplot(df_article_settings_box_e2, aes(x = dataset, y = Duration.s.)) +
+  geom_boxplot() + xlab("Size of dataset") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("0.32GB","3.2GB","32GB")) #+ expand_limits(x = 0, y = 0)# + ggtitle("Word count performance with Article Settings") 
 
 
+article_setting_box
+ 
+new_setting_box <- ggplot(df_new_settings_box_e2, aes(x = dataset, y =Duration.s.)) +
+  geom_boxplot()   + xlab("Size of dataset") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("0.32GB","3.2GB","32GB")) #+ expand_limits(x = 0, y = 0)#+ ggtitle("Word count performace with Our Settings")
+
+new_setting_box 
+
+```
+Since i dont want to go to bottom of page I dont to see if duration is stat diff in gb size 
+```{r}
+
+
+two.anova_GBdiff = aov(Duration.s. ~ dataset + settings, data=df_stat_test_e2)
+
+
+summary(two.anova_GBdiff)
+
+
+TukeyHSD(two.anova_GBdiff)
+
+
+```
 
 
 
@@ -103,8 +182,6 @@ bar plot
 
 df_bar = rbind(df_article_settings_bar, df_new_settings_bar)
 df_bar["comb_settings"] <- paste(df_bar$Type , df_bar$settings)
-
-
 
 
 
@@ -161,19 +238,40 @@ df_stat2["comb_nodes"] = paste(df_stat$Type , df_stat$node_numb)
 
 df_stat_test <- data.frame( df_stat2$Duration.s.,  df_stat2$comb_nodes , df_stat2$settings, df_stat2$node_numb, df_stat2$Type)
 colnames(df_stat_test) <- c("Duration.s." , "comb_nodes" ,"settings", "node_numb", "system_type")
-
-one.way_settings <- aov(Duration.s. ~ settings, data = df_stat_test)
-
-print("mean of setting a data for duration is statically different ")
-summary(one.way_settings)
+```
 
 
+We see out setting are not statically signfication when we hold system type and node numb content at a .001 level. we do see 
 
-one.way_nodenumber <- aov(Duration.s. ~ node_numb + system_type, data = df_stat_test)
+```{r}
+one.way_nodenumber <- aov(Duration.s. ~ node_numb * system_type, data = df_stat_test)
 
 print("does the mean different with node number")
 summary(one.way_nodenumber)
 
+TukeyHSD(one.way_nodenumber)
+
+```
+We want to see if our setting matter 
+```{r}
+
+one.way_settings <- aov(Duration.s. ~ settings + ( system_type + node_numb), data = df_stat_test)
+
+print("mean of setting a data for duration is statically different ")
+summary(one.way_settings)
+
+TukeyHSD(one.way_settings)
+
+```
+
+
+They do but are not a constent if we look at bar graph
+```{r}
+#one.way_plus_sys <- aov(Duration.s. ~ node_numb + system_type , data = df_stat_test)
+
+#summary(one.way_plus_sys)
+
+#TukeyHSD(one.way_plus_sys)
 
 ```
 The mean duration time of System Type( either Hadoop or spark is statistically significant at a significance of 0.05) but our setting changes do not make a statically significant change to the mean 
