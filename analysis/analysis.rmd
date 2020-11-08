@@ -110,8 +110,8 @@ df_bar["comb_settings"] <- paste(df_bar$Type , df_bar$settings)
 
 
 article_setting_bar <- ggplot(df_bar, aes(x = node_numb, y=Duration.s., fill = comb_settings)) + geom_bar(stat="identity" , position='dodge') +
-  ggtitle("K-means performace ") + ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15"), name="Number of Nodes") +
-  scale_fill_discrete(name="System, settings", labels = c("Hadoop, Article", "Hadoop , Our", "Spark , Article", "Spark , Our"))
+ ylab("Duration (seconds)") + scale_x_discrete(limits=c("5","10","15"), name="Number of Nodes") +
+  scale_fill_discrete(name="System, settings", labels = c("Hadoop, Article", "Hadoop , Our", "Spark , Article", "Spark , Our")) # + ggtitle("K-means performace ") 
   
 
 
