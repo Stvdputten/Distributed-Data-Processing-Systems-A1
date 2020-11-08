@@ -264,7 +264,7 @@ if [[ $1 == "--experiments-2" ]]; then
      sed -i "3s/huge/$3/g" $HIBENCH_HOME/conf/hibench.conf
      sed -i "3s/gigantic/$3/g" $HIBENCH_HOME/conf/hibench.conf # takes for too long
      sed -i "3s/bigdata/$3/g" $HIBENCH_HOME/conf/hibench.conf #takes far too long
-     cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pmicro -Pml -Dspark=2.4 clean package
+     cd "$HIBENCH_HOME" && mvn -Phadoopbench -Psparkbench -Dmodules -Pmicro -Dspark=2.4 clean package
      cd -
   fi
 
