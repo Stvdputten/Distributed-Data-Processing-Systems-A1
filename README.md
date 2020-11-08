@@ -40,6 +40,7 @@ git clone https://github.com/Stvdputten/Distributed-Data-Processing-Systems-A1.g
 ```
 
 **2. Deploy setup** (optional)
+| Make sure you set your settings in yarn-site.xml in the $HADOOP_HOME/etc/hadoop/ is set correctly when starting up, otherwise you have to restart.
 
 ```
 cd Distributed-Data-Processing-Systems-A1
@@ -61,7 +62,9 @@ source ~/.bashrc
 Now that the cluster is setup and Hibench has been built, we can run the experiments n times
 
 ```
-./das5setup --experiments 20
+./das5setup --experiments-1 20 # set to large dataset size
+#
+./das5setup --experiments-2 20 huge # last flag can be changed to try other setups
 ```
 The results are copied to `experiments/hibench.report`
 
